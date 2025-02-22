@@ -148,41 +148,50 @@ export default function ApiExplorer() {
             <Tabs 
               defaultValue={selectedEndpoint.path}
               onValueChange={handleEndpointChange}
+              className="w-full"
             >
-              <TabsList className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+              <TabsList className="mb-4 w-full flex flex-wrap gap-2">
                 {endpoints.map((endpoint) => (
                   <TabsTrigger 
-                    key={endpoint.path}
+                    key={`${endpoint.method}-${endpoint.path}`}
                     value={endpoint.path}
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    className="flex-1 min-w-[150px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                   >
-                    {endpoint.method} {endpoint.path}
+                    <span className="font-mono">{endpoint.method}</span>
+                    <span className="ml-2 truncate">{endpoint.path}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
 
               {endpoints.map((endpoint) => (
-                <TabsContent key={endpoint.path} value={endpoint.path}>
-                  <div className="mt-4 space-y-4">
+                <TabsContent 
+                  key={`content-${endpoint.method}-${endpoint.path}`} 
+                  value={endpoint.path}
+                  className="border rounded-lg p-4"
+                >
+                  <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium">Full URL:</label>
-                      <pre className="mt-1 p-2 bg-muted rounded-md overflow-x-auto">
+                      <h3 className="text-sm font-medium mb-2">Full URL:</h3>
+                      <pre className="p-3 bg-muted rounded-md overflow-x-auto font-mono text-sm">
                         {getFullUrl()}
                       </pre>
                     </div>
 
-                    <p className="text-sm text-muted-foreground">
-                      {endpoint.description}
-                    </p>
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">Description:</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {endpoint.description}
+                      </p>
+                    </div>
 
                     {endpoint.path.includes(":id") && (
                       <div>
-                        <label className="text-sm font-medium">
+                        <h3 className="text-sm font-medium mb-2">
                           Record ID:
-                        </label>
+                        </h3>
                         <input
                           type="number"
-                          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2"
                           onChange={(e) => setParams({ ...params, id: e.target.value })}
                           placeholder="Enter record ID"
                         />
@@ -191,12 +200,12 @@ export default function ApiExplorer() {
 
                     {endpoint.path.includes("/search") && (
                       <div>
-                        <label className="text-sm font-medium">
+                        <h3 className="text-sm font-medium mb-2">
                           Search Query:
-                        </label>
+                        </h3>
                         <input
                           type="text"
-                          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
+                          className="w-full rounded-md border border-input bg-background px-3 py-2"
                           onChange={(e) => setParams({ ...params, q: e.target.value })}
                           placeholder="Enter search term"
                         />
@@ -205,13 +214,13 @@ export default function ApiExplorer() {
 
                     {endpoint.requestBody && (
                       <div>
-                        <label className="text-sm font-medium">
+                        <h3 className="text-sm font-medium mb-2">
                           Request Body:
-                        </label>
+                        </h3>
                         <Textarea
                           value={requestBody}
                           onChange={(e) => setRequestBody(e.target.value)}
-                          className="font-mono text-sm mt-1"
+                          className="font-mono text-sm"
                           rows={10}
                         />
                       </div>
@@ -233,9 +242,9 @@ export default function ApiExplorer() {
                     </Button>
 
                     {(requestState.response || requestState.error) && (
-                      <div className="mt-4">
+                      <div>
                         <h3 className="text-sm font-medium mb-2">Response:</h3>
-                        <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-96">
+                        <pre className="p-4 bg-muted rounded-lg overflow-auto max-h-96 font-mono text-sm">
                           {requestState.error ? (
                             <span className="text-red-500">{requestState.error}</span>
                           ) : (
