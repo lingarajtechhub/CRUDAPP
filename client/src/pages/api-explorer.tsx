@@ -108,13 +108,22 @@ export default function ApiExplorer() {
         selectedEndpoint.method !== "GET" && requestBody ? JSON.parse(requestBody) : undefined
       );
 
-      let responseData;
-      try {
-        responseData = await response.json();
-      } catch {
-        responseData = { success: true, message: "Operation completed successfully" };
+      // Handle DELETE responses differently
+      if (selectedEndpoint.method === "DELETE") {
+        setRequestState({
+          loading: false,
+          response: {
+            status: response.status,
+            data: { success: true, message: `Record successfully deleted` }
+          }
+        });
+        // Invalidate queries immediately after successful deletion
+        await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
+        return;
       }
 
+      // For non-DELETE operations
+      const responseData = await response.json();
       setRequestState({
         loading: false,
         response: {
@@ -123,7 +132,7 @@ export default function ApiExplorer() {
         }
       });
 
-      // Invalidate queries after successful mutation
+      // Invalidate queries after successful mutation for non-GET operations
       if (selectedEndpoint.method !== "GET") {
         await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
       }
