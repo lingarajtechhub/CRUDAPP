@@ -112,19 +112,45 @@ export default function ApiExplorer() {
 
       // Handle DELETE responses differently
       if (selectedEndpoint.method === "DELETE") {
+        if (response.status === 204) {
+          setRequestState({
+            loading: false,
+            response: {
+              status: 204,
+              data: { success: true, message: "Record successfully deleted" }
+            }
+          });
+          // Invalidate queries immediately after successful deletion
+          await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
+        } else {
+          const errorData = await response.json();
+          setRequestState({
+            loading: false,
+            error: errorData.message || "Failed to delete record"
+          });
+        }
+        return;
+      }
+
+      // For PATCH operations, expect a specific response format
+      if (selectedEndpoint.method === "PATCH") {
+        const responseData = await response.json();
         setRequestState({
           loading: false,
           response: {
             status: response.status,
-            data: { success: true, message: `Record successfully deleted` }
+            data: {
+              success: true,
+              message: "Record updated successfully",
+              data: responseData.data
+            }
           }
         });
-        // Invalidate queries immediately after successful deletion
         await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
         return;
       }
 
-      // For non-DELETE operations
+      // For other operations (GET, POST)
       const responseData = await response.json();
       setRequestState({
         loading: false,
