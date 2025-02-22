@@ -14,6 +14,9 @@ interface Endpoint {
   requestBody?: any;
 }
 
+// Get the base URL for displaying absolute URLs
+const baseUrl = window.location.origin;
+
 const endpoints: Endpoint[] = [
   {
     method: "GET",
@@ -79,7 +82,7 @@ export default function ApiExplorer() {
     setRequestState({ loading: true });
     try {
       let path = selectedEndpoint.path;
-      
+
       // Replace path parameters
       Object.entries(params).forEach(([key, value]) => {
         path = path.replace(`:${key}`, value);
@@ -110,6 +113,18 @@ export default function ApiExplorer() {
         error: error instanceof Error ? error.message : "An error occurred"
       });
     }
+  };
+
+  // Get the full URL for the current endpoint
+  const getFullUrl = () => {
+    let url = baseUrl + selectedEndpoint.path;
+    if (url.includes(":id") && params.id) {
+      url = url.replace(":id", params.id);
+    }
+    if (selectedEndpoint.path.includes("/search") && params.q) {
+      url += `?q=${encodeURIComponent(params.q)}`;
+    }
+    return url;
   };
 
   return (
@@ -149,6 +164,13 @@ export default function ApiExplorer() {
               {endpoints.map((endpoint) => (
                 <TabsContent key={endpoint.path} value={endpoint.path}>
                   <div className="mt-4 space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Full URL:</label>
+                      <pre className="mt-1 p-2 bg-muted rounded-md overflow-x-auto">
+                        {getFullUrl()}
+                      </pre>
+                    </div>
+
                     <p className="text-sm text-muted-foreground">
                       {endpoint.description}
                     </p>
