@@ -82,30 +82,19 @@ export async function registerRoutes(app: Express) {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
-        return res.status(400).json({ 
-          success: false,
-          message: "Invalid record ID. Please provide a valid number." 
-        });
+        return res.status(400).json({ message: "Invalid record ID. Please provide a valid number." });
       }
 
       const success = await storage.deleteRecord(id);
       if (!success) {
-        return res.status(404).json({ 
-          success: false,
-          message: `Record with ID ${id} not found` 
-        });
+        return res.status(404).json({ message: "Record not found" });
       }
 
-      res.status(200).json({ 
-        success: true,
-        message: `Record with ID ${id} was successfully deleted` 
-      });
+      // Return 204 No Content as per API documentation
+      res.status(204).send();
     } catch (error) {
       console.error('Error deleting record:', error);
-      res.status(500).json({ 
-        success: false,
-        message: "Internal server error occurred while deleting the record" 
-      });
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
