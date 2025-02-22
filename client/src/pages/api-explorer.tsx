@@ -155,10 +155,10 @@ export default function ApiExplorer() {
                   <TabsTrigger 
                     key={`${endpoint.method}-${endpoint.path}`}
                     value={endpoint.path}
-                    className="flex-1 min-w-[150px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    className="flex-1 min-w-[150px] md:min-w-[120px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                   >
                     <span className="font-mono">{endpoint.method}</span>
-                    <span className="ml-2 truncate">{endpoint.path}</span>
+                    <span className="ml-2 truncate hidden md:inline">{endpoint.path}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -172,7 +172,7 @@ export default function ApiExplorer() {
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-sm font-medium mb-2">Full URL:</h3>
-                      <pre className="p-3 bg-muted rounded-md overflow-x-auto font-mono text-sm">
+                      <pre className="p-3 bg-muted rounded-md overflow-x-auto font-mono text-sm whitespace-pre-wrap break-all">
                         {getFullUrl()}
                       </pre>
                     </div>
@@ -244,7 +244,7 @@ export default function ApiExplorer() {
                     {(requestState.response || requestState.error) && (
                       <div>
                         <h3 className="text-sm font-medium mb-2">Response:</h3>
-                        <pre className="p-4 bg-muted rounded-lg overflow-auto max-h-96 font-mono text-sm">
+                        <pre className="p-4 bg-muted rounded-lg overflow-auto max-h-96 font-mono text-sm whitespace-pre-wrap">
                           {requestState.error ? (
                             <span className="text-red-500">{requestState.error}</span>
                           ) : (
