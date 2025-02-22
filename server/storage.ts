@@ -33,32 +33,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateRecord(id: number, updateRecord: InsertRecord): Promise<Record | undefined> {
-    // First check if record exists
-    const existing = await this.getRecord(id);
-    if (!existing) {
-      return undefined;
-    }
+    // Use transaction to ensure atomic update
+    return await db.transaction(async (tx) => {
+      // Check if record exists within transaction
+      const [existing] = await tx.select().from(records).where(eq(records.id, id));
+      if (!existing) {
+        return undefined;
+      }
 
-    const [record] = await db
-      .update(records)
-      .set(updateRecord)
-      .where(eq(records.id, id))
-      .returning();
-    return record;
+      // Perform update within same transaction
+      const [updated] = await tx
+        .update(records)
+        .set(updateRecord)
+        .where(eq(records.id, id))
+        .returning();
+
+      return updated;
+    });
   }
 
   async deleteRecord(id: number): Promise<boolean> {
-    // First check if record exists
-    const existing = await this.getRecord(id);
-    if (!existing) {
-      return false;
-    }
+    // Use transaction to ensure atomic delete
+    return await db.transaction(async (tx) => {
+      // Check if record exists within transaction
+      const [existing] = await tx.select().from(records).where(eq(records.id, id));
+      if (!existing) {
+        return false;
+      }
 
-    const [record] = await db
-      .delete(records)
-      .where(eq(records.id, id))
-      .returning();
-    return !!record;
+      // Perform delete within same transaction
+      const [deleted] = await tx
+        .delete(records)
+        .where(eq(records.id, id))
+        .returning();
+
+      return !!deleted;
+    });
   }
 
   async searchRecords(query: string): Promise<Record[]> {
