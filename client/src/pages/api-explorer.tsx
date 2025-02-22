@@ -7,6 +7,17 @@ import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Send } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Endpoint {
   method: string;
@@ -72,19 +83,66 @@ export default function ApiExplorer() {
   const [requestState, setRequestState] = useState<RequestState>({ loading: false });
   const [params, setParams] = useState<Record<string, string>>({});
   const [isOperationInProgress, setIsOperationInProgress] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleEndpointChange = (path: string) => {
     const endpoint = endpoints.find(e => e.path === path)!;
     setSelectedEndpoint(endpoint);
-    // Reset states when changing endpoints
     setRequestBody(endpoint.requestBody ? JSON.stringify(endpoint.requestBody, null, 2) : "");
     setRequestState({ loading: false });
     setParams({});
     setIsOperationInProgress(false);
+    setShowDeleteConfirm(false);
+  };
+
+  const executeDelete = async () => {
+    if (!params.id) {
+      setRequestState({
+        loading: false,
+        error: "Please provide a record ID"
+      });
+      return;
+    }
+
+    setRequestState({ loading: true });
+    try {
+      const response = await apiRequest(
+        "DELETE",
+        `/api/records/${params.id}`
+      );
+
+      if (response.status === 204) {
+        setRequestState({
+          loading: false,
+          response: {
+            status: 204,
+            data: { success: true, message: "Record successfully deleted" }
+          }
+        });
+        await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
+      } else {
+        const errorData = await response.json();
+        setRequestState({
+          loading: false,
+          error: errorData.message || "Failed to delete record"
+        });
+      }
+    } catch (error) {
+      setRequestState({
+        loading: false,
+        error: error instanceof Error ? error.message : "An error occurred"
+      });
+    }
   };
 
   const handleSendRequest = async () => {
     if (isOperationInProgress) {
+      return;
+    }
+
+    // For DELETE operations, show confirmation dialog
+    if (selectedEndpoint.method === "DELETE") {
+      setShowDeleteConfirm(true);
       return;
     }
 
@@ -109,28 +167,6 @@ export default function ApiExplorer() {
         path,
         selectedEndpoint.method !== "GET" && requestBody ? JSON.parse(requestBody) : undefined
       );
-
-      // Handle DELETE responses differently
-      if (selectedEndpoint.method === "DELETE") {
-        if (response.status === 204) {
-          setRequestState({
-            loading: false,
-            response: {
-              status: 204,
-              data: { success: true, message: "Record successfully deleted" }
-            }
-          });
-          // Invalidate queries immediately after successful deletion
-          await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
-        } else {
-          const errorData = await response.json();
-          setRequestState({
-            loading: false,
-            error: errorData.message || "Failed to delete record"
-          });
-        }
-        return;
-      }
 
       // For PATCH operations, expect a specific response format
       if (selectedEndpoint.method === "PATCH") {
@@ -175,7 +211,6 @@ export default function ApiExplorer() {
     }
   };
 
-  // Get the full URL for the current endpoint
   const getFullUrl = () => {
     let url = baseUrl + selectedEndpoint.path;
     if (url.includes(":id") && params.id) {
@@ -301,25 +336,52 @@ export default function ApiExplorer() {
                       </div>
                     )}
 
-                    <Button
-                      onClick={handleSendRequest}
-                      disabled={requestState.loading || isOperationInProgress}
-                      className={`w-full ${
-                        endpoint.method === 'DELETE' ? 'bg-red-600 hover:bg-red-700' :
-                        endpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700' :
-                        endpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700' :
-                        ''
-                      }`}
-                    >
-                      {requestState.loading ? (
-                        "Sending..."
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4 mr-2" />
-                          Send Request
-                        </>
-                      )}
-                    </Button>
+                    {endpoint.method === "DELETE" ? (
+                      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            className="w-full bg-red-600 hover:bg-red-700"
+                            disabled={requestState.loading || isOperationInProgress}
+                          >
+                            <Send className="w-4 h-4 mr-2" />
+                            Delete Record
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Record</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this record? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={executeDelete}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    ) : (
+                      <Button
+                        onClick={handleSendRequest}
+                        disabled={requestState.loading || isOperationInProgress}
+                        className={`w-full ${
+                          endpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700' :
+                          endpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700' :
+                          ''
+                        }`}
+                      >
+                        {requestState.loading ? (
+                          "Sending..."
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Send Request
+                          </>
+                        )}
+                      </Button>
+                    )}
 
                     {(requestState.response || requestState.error) && (
                       <div>
