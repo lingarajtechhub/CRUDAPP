@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Send } from "lucide-react";
 import { Link } from "wouter";
+import { queryClient } from "@/lib/queryClient";
 
 interface Endpoint {
   method: string;
@@ -70,16 +71,24 @@ export default function ApiExplorer() {
   );
   const [requestState, setRequestState] = useState<RequestState>({ loading: false });
   const [params, setParams] = useState<Record<string, string>>({});
+  const [isOperationInProgress, setIsOperationInProgress] = useState(false);
 
   const handleEndpointChange = (path: string) => {
     const endpoint = endpoints.find(e => e.path === path)!;
     setSelectedEndpoint(endpoint);
     setRequestBody(endpoint.requestBody ? JSON.stringify(endpoint.requestBody, null, 2) : "");
     setRequestState({ loading: false });
+    setParams({});
   };
 
   const handleSendRequest = async () => {
+    if (isOperationInProgress) {
+      return;
+    }
+
+    setIsOperationInProgress(true);
     setRequestState({ loading: true });
+
     try {
       let path = selectedEndpoint.path;
 
@@ -99,7 +108,13 @@ export default function ApiExplorer() {
         selectedEndpoint.method !== "GET" && requestBody ? JSON.parse(requestBody) : undefined
       );
 
-      const responseData = response.status === 204 ? null : await response.json();
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch {
+        responseData = { success: true, message: "Operation completed successfully" };
+      }
+
       setRequestState({
         loading: false,
         response: {
@@ -107,11 +122,19 @@ export default function ApiExplorer() {
           data: responseData
         }
       });
+
+      // Invalidate queries after successful mutation
+      if (selectedEndpoint.method !== "GET") {
+        await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
+      }
+
     } catch (error) {
       setRequestState({
         loading: false,
         error: error instanceof Error ? error.message : "An error occurred"
       });
+    } finally {
+      setIsOperationInProgress(false);
     }
   };
 
@@ -156,6 +179,7 @@ export default function ApiExplorer() {
                     key={`${endpoint.method}-${endpoint.path}`}
                     value={endpoint.path}
                     className="flex items-center justify-start md:justify-center p-2 md:p-3 gap-2 w-full md:w-auto md:flex-1"
+                    disabled={isOperationInProgress}
                   >
                     <span className="font-mono bg-muted px-2 py-1 rounded text-xs">
                       {endpoint.method}
@@ -198,6 +222,7 @@ export default function ApiExplorer() {
                           className="w-full rounded-md border border-input bg-background px-3 py-2"
                           onChange={(e) => setParams({ ...params, id: e.target.value })}
                           placeholder="Enter record ID"
+                          disabled={isOperationInProgress}
                         />
                       </div>
                     )}
@@ -212,6 +237,7 @@ export default function ApiExplorer() {
                           className="w-full rounded-md border border-input bg-background px-3 py-2"
                           onChange={(e) => setParams({ ...params, q: e.target.value })}
                           placeholder="Enter search term"
+                          disabled={isOperationInProgress}
                         />
                       </div>
                     )}
@@ -226,13 +252,14 @@ export default function ApiExplorer() {
                           onChange={(e) => setRequestBody(e.target.value)}
                           className="font-mono text-sm"
                           rows={10}
+                          disabled={isOperationInProgress}
                         />
                       </div>
                     )}
 
                     <Button
                       onClick={handleSendRequest}
-                      disabled={requestState.loading}
+                      disabled={requestState.loading || isOperationInProgress}
                       className="w-full"
                     >
                       {requestState.loading ? (
