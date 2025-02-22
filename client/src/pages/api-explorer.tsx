@@ -150,15 +150,19 @@ export default function ApiExplorer() {
               onValueChange={handleEndpointChange}
               className="w-full"
             >
-              <TabsList className="mb-4 w-full flex flex-wrap gap-2">
+              <TabsList className="mb-4 grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap gap-2">
                 {endpoints.map((endpoint) => (
                   <TabsTrigger 
                     key={`${endpoint.method}-${endpoint.path}`}
                     value={endpoint.path}
-                    className="flex-1 min-w-[150px] md:min-w-[120px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    className="flex items-center justify-start md:justify-center p-2 md:p-3 gap-2 w-full md:w-auto md:flex-1"
                   >
-                    <span className="font-mono">{endpoint.method}</span>
-                    <span className="ml-2 truncate hidden md:inline">{endpoint.path}</span>
+                    <span className="font-mono bg-muted px-2 py-1 rounded text-xs">
+                      {endpoint.method}
+                    </span>
+                    <span className="truncate text-sm">
+                      {endpoint.path}
+                    </span>
                   </TabsTrigger>
                 ))}
               </TabsList>
