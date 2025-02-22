@@ -1,4 +1,6 @@
 import { records, type Record, type InsertRecord } from "@shared/schema";
+import { db } from "./db";
+import { eq, like } from "drizzle-orm";
 
 export interface IStorage {
   getRecords(): Promise<Record[]>;
@@ -9,62 +11,57 @@ export interface IStorage {
   searchRecords(query: string): Promise<Record[]>;
 }
 
-export class MemStorage implements IStorage {
-  private records: Map<number, Record>;
-  private currentId: number;
-
-  constructor() {
-    this.records = new Map();
-    this.currentId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getRecords(): Promise<Record[]> {
-    return Array.from(this.records.values()).sort((a, b) => b.id - a.id);
+    return await db.select().from(records).orderBy(records.id);
   }
 
   async getRecord(id: number): Promise<Record | undefined> {
-    return this.records.get(id);
+    const [record] = await db.select().from(records).where(eq(records.id, id));
+    return record;
   }
 
   async createRecord(insertRecord: InsertRecord): Promise<Record> {
-    const id = this.currentId++;
-    const record: Record = {
-      ...insertRecord,
-      id,
-      createdAt: new Date(),
-    };
-    this.records.set(id, record);
+    const [record] = await db
+      .insert(records)
+      .values({
+        ...insertRecord,
+        createdAt: new Date(),
+      })
+      .returning();
     return record;
   }
 
   async updateRecord(id: number, updateRecord: InsertRecord): Promise<Record | undefined> {
-    const existing = this.records.get(id);
-    if (!existing) return undefined;
-
-    const updated: Record = {
-      id: existing.id,
-      title: updateRecord.title,
-      description: updateRecord.description,
-      status: updateRecord.status,
-      priority: updateRecord.priority,
-      createdAt: existing.createdAt, // Preserve the original creation time
-    };
-    this.records.set(id, updated);
-    return updated;
+    const [record] = await db
+      .update(records)
+      .set(updateRecord)
+      .where(eq(records.id, id))
+      .returning();
+    return record;
   }
 
   async deleteRecord(id: number): Promise<boolean> {
-    return this.records.delete(id);
+    const [record] = await db
+      .delete(records)
+      .where(eq(records.id, id))
+      .returning();
+    return !!record;
   }
 
   async searchRecords(query: string): Promise<Record[]> {
-    const searchTerm = query.toLowerCase();
-    return Array.from(this.records.values()).filter(
-      record =>
-        record.title.toLowerCase().includes(searchTerm) ||
-        record.description.toLowerCase().includes(searchTerm)
-    ).sort((a, b) => b.id - a.id);
+    if (!query) {
+      return this.getRecords();
+    }
+
+    return await db
+      .select()
+      .from(records)
+      .where(
+        like(records.title, `%${query}%`)
+      )
+      .orderBy(records.id);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
