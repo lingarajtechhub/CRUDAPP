@@ -41,27 +41,44 @@ export async function registerRoutes(app: Express) {
   app.patch("/api/records/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid record ID" });
+      }
+
       const data = insertRecordSchema.parse(req.body);
       const record = await storage.updateRecord(id, data);
+
       if (!record) {
-        return res.status(404).json({ message: "Record not found" });
+        return res.status(404).json({ message: `Record with ID ${id} not found` });
       }
+
       res.json(record);
     } catch (error) {
       if (error instanceof ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }
-      throw error;
+      console.error('Error updating record:', error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
   app.delete("/api/records/:id", async (req, res) => {
-    const id = parseInt(req.params.id);
-    const success = await storage.deleteRecord(id);
-    if (!success) {
-      return res.status(404).json({ message: "Record not found" });
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid record ID" });
+      }
+
+      const success = await storage.deleteRecord(id);
+      if (!success) {
+        return res.status(404).json({ message: `Record with ID ${id} not found` });
+      }
+
+      res.status(204).end();
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      res.status(500).json({ message: "Internal server error" });
     }
-    res.status(204).end();
   });
 
   return createServer(app);

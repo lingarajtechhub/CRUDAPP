@@ -33,6 +33,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateRecord(id: number, updateRecord: InsertRecord): Promise<Record | undefined> {
+    // First check if record exists
+    const existing = await this.getRecord(id);
+    if (!existing) {
+      return undefined;
+    }
+
     const [record] = await db
       .update(records)
       .set(updateRecord)
@@ -42,6 +48,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteRecord(id: number): Promise<boolean> {
+    // First check if record exists
+    const existing = await this.getRecord(id);
+    if (!existing) {
+      return false;
+    }
+
     const [record] = await db
       .delete(records)
       .where(eq(records.id, id))
