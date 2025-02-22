@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -26,12 +26,20 @@ export default function Home() {
     <div className="container mx-auto p-4 max-w-6xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Records</h1>
-        <Link href="/records/new">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            New Record
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/api-explorer">
+            <Button variant="outline">
+              <Terminal className="w-4 h-4 mr-2" />
+              API Explorer
+            </Button>
+          </Link>
+          <Link href="/records/new">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              New Record
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <SearchBar value={searchQuery} onChange={setSearchQuery} />

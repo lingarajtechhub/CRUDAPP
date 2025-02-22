@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import EditRecord from "@/pages/edit-record";
+import ApiExplorer from "@/pages/api-explorer";
 
 function Router() {
   return (
@@ -12,6 +13,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/records/new" component={EditRecord} />
       <Route path="/records/:id" component={EditRecord} />
+      <Route path="/api-explorer" component={ApiExplorer} />
       <Route component={NotFound} />
     </Switch>
   );
