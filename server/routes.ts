@@ -16,8 +16,21 @@ export async function registerRoutes(app: Express) {
     res.json(records);
   });
 
+  // Helper function to validate ID parameter
+  function validateId(id: string): number | null {
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId) || parsedId.toString() !== id) {
+      return null;
+    }
+    return parsedId;
+  }
+
   app.get("/api/records/:id", async (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = validateId(req.params.id);
+    if (id === null) {
+      return res.status(400).json({ message: "Invalid record ID. Please provide a valid number." });
+    }
+
     const record = await storage.getRecord(id);
     if (!record) {
       return res.status(404).json({ message: "Record not found" });
@@ -40,22 +53,16 @@ export async function registerRoutes(app: Express) {
 
   app.patch("/api/records/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ 
-          success: false,
-          message: "Invalid record ID. Please provide a valid number." 
-        });
+      const id = validateId(req.params.id);
+      if (id === null) {
+        return res.status(400).json({ message: "Invalid record ID. Please provide a valid number." });
       }
 
       const data = insertRecordSchema.parse(req.body);
       const record = await storage.updateRecord(id, data);
 
       if (!record) {
-        return res.status(404).json({ 
-          success: false,
-          message: `Record with ID ${id} not found` 
-        });
+        return res.status(404).json({ message: "Record not found" });
       }
 
       res.json({ 
@@ -65,23 +72,17 @@ export async function registerRoutes(app: Express) {
       });
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({ 
-          success: false,
-          message: error.errors[0].message 
-        });
+        return res.status(400).json({ message: error.errors[0].message });
       }
       console.error('Error updating record:', error);
-      res.status(500).json({ 
-        success: false,
-        message: "Internal server error occurred while updating the record" 
-      });
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
   app.delete("/api/records/:id", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
+      const id = validateId(req.params.id);
+      if (id === null) {
         return res.status(400).json({ message: "Invalid record ID. Please provide a valid number." });
       }
 
