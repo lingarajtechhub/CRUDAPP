@@ -42,8 +42,12 @@ export class MemStorage implements IStorage {
     if (!existing) return undefined;
 
     const updated: Record = {
-      ...existing,
-      ...updateRecord,
+      id: existing.id,
+      title: updateRecord.title,
+      description: updateRecord.description,
+      status: updateRecord.status,
+      priority: updateRecord.priority,
+      createdAt: existing.createdAt, // Preserve the original creation time
     };
     this.records.set(id, updated);
     return updated;

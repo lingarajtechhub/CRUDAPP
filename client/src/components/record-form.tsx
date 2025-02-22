@@ -35,11 +35,11 @@ export default function RecordForm({ record, onSuccess }: RecordFormProps) {
 
   const form = useForm<InsertRecord>({
     resolver: zodResolver(insertRecordSchema),
-    defaultValues: record || {
-      title: "",
-      description: "",
-      status: "todo",
-      priority: "medium",
+    defaultValues: {
+      title: record?.title || "",
+      description: record?.description || "",
+      status: record?.status || "todo",
+      priority: record?.priority || "medium",
     },
   });
 
@@ -52,6 +52,11 @@ export default function RecordForm({ record, onSuccess }: RecordFormProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/records"] });
+      if (isEditing) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/records", record.id.toString()]
+        });
+      }
       toast({
         title: `Record ${isEditing ? "updated" : "created"} successfully`,
       });
