@@ -9,9 +9,14 @@ import { Link } from "wouter";
 export default function EditRecord() {
   const [, setLocation] = useLocation();
   const { id } = useParams();
-  
+
   const { data: record, isLoading } = useQuery<Record>({
-    queryKey: id ? ["/api/records", id] : null,
+    queryKey: id ? ["/api/records", id] : undefined,
+    queryFn: async () => {
+      const response = await fetch(`/api/records/${id}`);
+      if (!response.ok) throw new Error("Failed to fetch record");
+      return response.json();
+    },
     enabled: !!id,
   });
 
