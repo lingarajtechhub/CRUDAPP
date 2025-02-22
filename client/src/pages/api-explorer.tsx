@@ -76,9 +76,11 @@ export default function ApiExplorer() {
   const handleEndpointChange = (path: string) => {
     const endpoint = endpoints.find(e => e.path === path)!;
     setSelectedEndpoint(endpoint);
+    // Reset states when changing endpoints
     setRequestBody(endpoint.requestBody ? JSON.stringify(endpoint.requestBody, null, 2) : "");
     setRequestState({ loading: false });
     setParams({});
+    setIsOperationInProgress(false);
   };
 
   const handleSendRequest = async () => {
@@ -178,7 +180,7 @@ export default function ApiExplorer() {
           </CardHeader>
           <CardContent>
             <Tabs 
-              defaultValue={selectedEndpoint.path}
+              value={selectedEndpoint.path}
               onValueChange={handleEndpointChange}
               className="w-full"
             >
@@ -190,7 +192,12 @@ export default function ApiExplorer() {
                     className="flex items-center justify-start md:justify-center p-2 md:p-3 gap-2 w-full md:w-auto md:flex-1"
                     disabled={isOperationInProgress}
                   >
-                    <span className="font-mono bg-muted px-2 py-1 rounded text-xs">
+                    <span className={`font-mono px-2 py-1 rounded text-xs ${
+                      endpoint.method === 'DELETE' ? 'bg-red-100 text-red-700' :
+                      endpoint.method === 'PATCH' ? 'bg-yellow-100 text-yellow-700' :
+                      endpoint.method === 'POST' ? 'bg-green-100 text-green-700' :
+                      'bg-muted'
+                    }`}>
                       {endpoint.method}
                     </span>
                     <span className="truncate text-sm">
@@ -232,6 +239,7 @@ export default function ApiExplorer() {
                           onChange={(e) => setParams({ ...params, id: e.target.value })}
                           placeholder="Enter record ID"
                           disabled={isOperationInProgress}
+                          value={params.id || ''}
                         />
                       </div>
                     )}
@@ -247,6 +255,7 @@ export default function ApiExplorer() {
                           onChange={(e) => setParams({ ...params, q: e.target.value })}
                           placeholder="Enter search term"
                           disabled={isOperationInProgress}
+                          value={params.q || ''}
                         />
                       </div>
                     )}
@@ -269,7 +278,12 @@ export default function ApiExplorer() {
                     <Button
                       onClick={handleSendRequest}
                       disabled={requestState.loading || isOperationInProgress}
-                      className="w-full"
+                      className={`w-full ${
+                        endpoint.method === 'DELETE' ? 'bg-red-600 hover:bg-red-700' :
+                        endpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700' :
+                        endpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700' :
+                        ''
+                      }`}
                     >
                       {requestState.loading ? (
                         "Sending..."
