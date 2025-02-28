@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
@@ -224,35 +223,40 @@ export default function ApiExplorer() {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen">
-        <Sidebar>
-          <SidebarHeader className="border-b">
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen bg-background">
+        <Sidebar className="border-r">
+          <SidebarHeader className="border-b px-4 py-2">
             <Link href="/">
-              <Button variant="ghost" className="mb-2">
+              <Button variant="ghost" className="mb-2 w-full justify-start">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Records
               </Button>
             </Link>
           </SidebarHeader>
           <SidebarContent>
+            <div className="px-4 py-2">
+              <h2 className="text-sm font-semibold mb-2">API Endpoints</h2>
+            </div>
             <SidebarMenu>
               {endpoints.map((endpoint) => (
                 <SidebarMenuItem key={`${endpoint.method}-${endpoint.path}`}>
                   <SidebarMenuButton
                     onClick={() => handleEndpointChange(endpoint)}
                     isActive={selectedEndpoint.path === endpoint.path}
-                    className="w-full justify-start"
+                    className="w-full justify-start px-4 py-2 hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
-                    <span className={`font-mono px-2 py-1 rounded text-xs ${
-                      endpoint.method === 'DELETE' ? 'bg-red-100 text-red-700' :
-                      endpoint.method === 'PATCH' ? 'bg-yellow-100 text-yellow-700' :
-                      endpoint.method === 'POST' ? 'bg-green-100 text-green-700' :
-                      'bg-muted'
-                    }`}>
-                      {endpoint.method}
-                    </span>
-                    <span className="ml-2">{endpoint.path}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`font-mono px-2 py-1 rounded text-xs whitespace-nowrap ${
+                        endpoint.method === 'DELETE' ? 'bg-red-100 text-red-700' :
+                        endpoint.method === 'PATCH' ? 'bg-yellow-100 text-yellow-700' :
+                        endpoint.method === 'POST' ? 'bg-green-100 text-green-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {endpoint.method}
+                      </span>
+                      <span className="truncate text-sm">{endpoint.path}</span>
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -260,125 +264,127 @@ export default function ApiExplorer() {
           </SidebarContent>
         </Sidebar>
 
-        <main className="flex-1 p-6">
-          <div className="max-w-4xl">
-            <h1 className="text-2xl font-bold mb-6">API Explorer</h1>
-
+        <main className="flex-1 overflow-auto">
+          <div className="container max-w-4xl mx-auto p-6">
             <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-medium mb-2">Full URL:</h3>
-                <pre className="p-3 bg-muted rounded-md overflow-x-auto font-mono text-sm whitespace-pre-wrap break-all">
-                  {getFullUrl()}
-                </pre>
+              <div className="pb-4 border-b">
+                <h1 className="text-2xl font-bold">API Explorer</h1>
+                <p className="text-sm text-muted-foreground mt-1">{selectedEndpoint.description}</p>
               </div>
 
-              <div>
-                <h3 className="text-sm font-medium mb-2">Description:</h3>
-                <p className="text-sm text-muted-foreground">
-                  {selectedEndpoint.description}
-                </p>
-              </div>
-
-              {selectedEndpoint.path.includes(":id") && (
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Record ID:</h3>
-                  <input
-                    type="number"
-                    className="w-full rounded-md border border-input bg-background px-3 py-2"
-                    onChange={(e) => setParams({ ...params, id: e.target.value })}
-                    placeholder="Enter record ID"
-                    disabled={isOperationInProgress}
-                    value={params.id || ''}
-                  />
-                </div>
-              )}
-
-              {selectedEndpoint.path.includes("/search") && (
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Search Query:</h3>
-                  <input
-                    type="text"
-                    className="w-full rounded-md border border-input bg-background px-3 py-2"
-                    onChange={(e) => setParams({ ...params, q: e.target.value })}
-                    placeholder="Enter search term"
-                    disabled={isOperationInProgress}
-                    value={params.q || ''}
-                  />
-                </div>
-              )}
-
-              {selectedEndpoint.requestBody && (
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Request Body:</h3>
-                  <Textarea
-                    value={requestBody}
-                    onChange={(e) => setRequestBody(e.target.value)}
-                    className="font-mono text-sm"
-                    rows={10}
-                    disabled={isOperationInProgress}
-                  />
-                </div>
-              )}
-
-              {selectedEndpoint.method === "DELETE" ? (
-                <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      className="w-full bg-red-600 hover:bg-red-700"
-                      disabled={requestState.loading || isOperationInProgress}
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      Delete Record
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Record</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this record? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={executeDelete}>
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              ) : (
-                <Button
-                  onClick={handleSendRequest}
-                  disabled={requestState.loading || isOperationInProgress}
-                  className={`w-full ${
-                    selectedEndpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700' :
-                    selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700' :
-                    ''
-                  }`}
-                >
-                  {requestState.loading ? (
-                    "Sending..."
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 mr-2" />
-                      Send Request
-                    </>
-                  )}
-                </Button>
-              )}
-
-              {(requestState.response || requestState.error) && (
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Response:</h3>
-                  <pre className="p-4 bg-muted rounded-lg overflow-auto max-h-96 font-mono text-sm whitespace-pre-wrap">
-                    {requestState.error ? (
-                      <span className="text-red-500">{requestState.error}</span>
-                    ) : (
-                      JSON.stringify(requestState.response, null, 2)
-                    )}
+              <div className="space-y-4">
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h3 className="text-sm font-medium mb-2">Request URL</h3>
+                  <pre className="bg-muted p-3 rounded-md overflow-x-auto font-mono text-sm">
+                    {getFullUrl()}
                   </pre>
                 </div>
-              )}
+
+                {selectedEndpoint.path.includes(":id") && (
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Record ID</h3>
+                    <input
+                      type="number"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2"
+                      onChange={(e) => setParams({ ...params, id: e.target.value })}
+                      placeholder="Enter record ID"
+                      disabled={isOperationInProgress}
+                      value={params.id || ''}
+                    />
+                  </div>
+                )}
+
+                {selectedEndpoint.path.includes("/search") && (
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Search Query</h3>
+                    <input
+                      type="text"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2"
+                      onChange={(e) => setParams({ ...params, q: e.target.value })}
+                      placeholder="Enter search term"
+                      disabled={isOperationInProgress}
+                      value={params.q || ''}
+                    />
+                  </div>
+                )}
+
+                {selectedEndpoint.requestBody && (
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Request Body</h3>
+                    <Textarea
+                      value={requestBody}
+                      onChange={(e) => setRequestBody(e.target.value)}
+                      className="font-mono text-sm min-h-[200px]"
+                      disabled={isOperationInProgress}
+                    />
+                  </div>
+                )}
+
+                {selectedEndpoint.method === "DELETE" ? (
+                  <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        disabled={requestState.loading || isOperationInProgress}
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Delete Record
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Record</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete this record? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={executeDelete}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : (
+                  <Button
+                    onClick={handleSendRequest}
+                    disabled={requestState.loading || isOperationInProgress}
+                    className={`w-full ${
+                      selectedEndpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' :
+                      selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700 text-white' :
+                      ''
+                    }`}
+                  >
+                    {requestState.loading ? (
+                      "Sending..."
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Request
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {(requestState.response || requestState.error) && (
+                  <div className="mt-6">
+                    <h3 className="text-sm font-medium mb-2">Response</h3>
+                    <pre className={`p-4 rounded-lg overflow-auto max-h-96 font-mono text-sm ${
+                      requestState.error ? 'bg-red-50 text-red-700' : 'bg-muted'
+                    }`}>
+                      {requestState.error ? (
+                        requestState.error
+                      ) : (
+                        JSON.stringify(requestState.response, null, 2)
+                      )}
+                    </pre>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </main>
