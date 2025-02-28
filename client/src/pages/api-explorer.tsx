@@ -33,7 +33,6 @@ interface Endpoint {
   requestBody?: any;
 }
 
-// Get the base URL for displaying absolute URLs
 const baseUrl = window.location.origin;
 
 const endpoints: Endpoint[] = [
@@ -227,24 +226,29 @@ export default function ApiExplorer() {
       <div className="flex min-h-screen bg-background">
         <Sidebar className="border-r">
           <SidebarHeader className="border-b px-6 py-4">
-            <Link href="/">
-              <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-primary transition-colors">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Records
-              </Button>
-            </Link>
-          </SidebarHeader>
-          <SidebarContent>
-            <div className="px-6 py-4">
-              <h2 className="text-sm font-semibold text-muted-foreground">API ENDPOINTS</h2>
+            <div className="space-y-4">
+              <Link href="/">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start bg-background hover:bg-accent"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Records
+                </Button>
+              </Link>
+              <h2 className="text-sm font-semibold text-muted-foreground tracking-tight">
+                API ENDPOINTS
+              </h2>
             </div>
+          </SidebarHeader>
+          <SidebarContent className="px-2">
             <SidebarMenu>
               {endpoints.map((endpoint) => (
                 <SidebarMenuItem key={`${endpoint.method}-${endpoint.path}`}>
                   <SidebarMenuButton
                     onClick={() => handleEndpointChange(endpoint)}
                     isActive={selectedEndpoint.path === endpoint.path}
-                    className="w-full justify-start px-6 py-3 hover:bg-accent hover:text-accent-foreground transition-colors"
+                    className="w-full justify-start px-4 py-3 hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <span className={`font-mono px-2 py-1 rounded text-xs whitespace-nowrap ${
@@ -265,9 +269,8 @@ export default function ApiExplorer() {
         </Sidebar>
 
         <main className="flex-1 overflow-auto">
-          {/* Jumbotron Header */}
           <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b">
-            <div className="container max-w-4xl mx-auto px-8 py-8">
+            <div className="container max-w-4xl mx-auto p-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">API Explorer</h1>
               <p className="text-lg text-muted-foreground">
                 {selectedEndpoint.description}
@@ -275,22 +278,19 @@ export default function ApiExplorer() {
             </div>
           </div>
 
-          {/* Main Content */}
-          <div className="container max-w-4xl mx-auto px-8 py-8">
+          <div className="container max-w-4xl mx-auto p-8">
             <div className="space-y-8">
-              {/* Request URL Section */}
               <div className="bg-muted/50 rounded-lg p-6">
-                <h3 className="text-sm font-medium mb-3">Request URL</h3>
+                <h3 className="text-sm font-semibold mb-3">Request URL</h3>
                 <pre className="bg-muted p-4 rounded-md overflow-x-auto font-mono text-sm">
                   {getFullUrl()}
                 </pre>
               </div>
 
-              {/* Parameters Section */}
               <div className="space-y-6">
                 {selectedEndpoint.path.includes(":id") && (
                   <div>
-                    <h3 className="text-sm font-medium mb-3">Record ID</h3>
+                    <h3 className="text-sm font-semibold mb-3">Record ID</h3>
                     <input
                       type="number"
                       className="w-full rounded-md border border-input bg-card px-4 py-2"
@@ -304,7 +304,7 @@ export default function ApiExplorer() {
 
                 {selectedEndpoint.path.includes("/search") && (
                   <div>
-                    <h3 className="text-sm font-medium mb-3">Search Query</h3>
+                    <h3 className="text-sm font-semibold mb-3">Search Query</h3>
                     <input
                       type="text"
                       className="w-full rounded-md border border-input bg-card px-4 py-2"
@@ -318,7 +318,7 @@ export default function ApiExplorer() {
 
                 {selectedEndpoint.requestBody && (
                   <div>
-                    <h3 className="text-sm font-medium mb-3">Request Body</h3>
+                    <h3 className="text-sm font-semibold mb-3">Request Body</h3>
                     <Textarea
                       value={requestBody}
                       onChange={(e) => setRequestBody(e.target.value)}
@@ -328,61 +328,61 @@ export default function ApiExplorer() {
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                {selectedEndpoint.method === "DELETE" ? (
-                  <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        className="w-full bg-red-600 hover:bg-red-700 text-white"
-                        disabled={requestState.loading || isOperationInProgress}
-                      >
-                        <Send className="w-4 h-4 mr-2" />
-                        Delete Record
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Record</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete this record? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={executeDelete}
-                          className="bg-red-600 hover:bg-red-700 text-white"
+                <div className="pt-4">
+                  {selectedEndpoint.method === "DELETE" ? (
+                    <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          className="w-full bg-red-600 hover:bg-red-700 text-white"
+                          disabled={requestState.loading || isOperationInProgress}
                         >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                ) : (
-                  <Button
-                    onClick={handleSendRequest}
-                    disabled={requestState.loading || isOperationInProgress}
-                    className={`w-full ${
-                      selectedEndpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' :
-                      selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700 text-white' :
-                      ''
-                    }`}
-                  >
-                    {requestState.loading ? (
-                      "Sending..."
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Send Request
-                      </>
-                    )}
-                  </Button>
-                )}
+                          <Send className="w-4 h-4 mr-2" />
+                          Delete Record
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Record</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this record? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={executeDelete}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  ) : (
+                    <Button
+                      onClick={handleSendRequest}
+                      disabled={requestState.loading || isOperationInProgress}
+                      className={`w-full ${
+                        selectedEndpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' :
+                        selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700 text-white' :
+                        ''
+                      }`}
+                    >
+                      {requestState.loading ? (
+                        "Sending..."
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Send Request
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
 
-                {/* Response Section */}
                 {(requestState.response || requestState.error) && (
                   <div className="mt-8">
-                    <h3 className="text-sm font-medium mb-3">Response</h3>
+                    <h3 className="text-sm font-semibold mb-3">Response</h3>
                     <pre className={`p-6 rounded-lg overflow-auto max-h-96 font-mono text-sm ${
                       requestState.error ? 'bg-red-50 text-red-700' : 'bg-muted'
                     }`}>
