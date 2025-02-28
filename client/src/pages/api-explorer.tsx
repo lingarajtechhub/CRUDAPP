@@ -228,7 +228,7 @@ export default function ApiExplorer() {
         <Sidebar className="border-r">
           <SidebarHeader className="border-b px-6 py-4">
             <Link href="/">
-              <Button variant="ghost" className="w-full justify-start">
+              <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-primary transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Records
               </Button>
@@ -267,7 +267,7 @@ export default function ApiExplorer() {
         <main className="flex-1 overflow-auto">
           {/* Jumbotron Header */}
           <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b">
-            <div className="container max-w-4xl mx-auto px-6 py-8">
+            <div className="container max-w-4xl mx-auto px-8 py-8">
               <h1 className="text-3xl font-bold text-foreground mb-2">API Explorer</h1>
               <p className="text-lg text-muted-foreground">
                 {selectedEndpoint.description}
@@ -276,7 +276,7 @@ export default function ApiExplorer() {
           </div>
 
           {/* Main Content */}
-          <div className="container max-w-4xl mx-auto px-6 py-8">
+          <div className="container max-w-4xl mx-auto px-8 py-8">
             <div className="space-y-8">
               {/* Request URL Section */}
               <div className="bg-muted/50 rounded-lg p-6">
