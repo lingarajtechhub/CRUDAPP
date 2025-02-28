@@ -79,6 +79,7 @@ export default function RecordsTable({ records, isLoading }: RecordsTableProps) 
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead>ID</TableHead>
           <TableHead>Title</TableHead>
           <TableHead>Description</TableHead>
           <TableHead>Status</TableHead>
@@ -90,7 +91,8 @@ export default function RecordsTable({ records, isLoading }: RecordsTableProps) 
       <TableBody>
         {records.map((record) => (
           <TableRow key={record.id}>
-            <TableCell className="font-medium">{record.title}</TableCell>
+            <TableCell className="font-medium">{record.id}</TableCell>
+            <TableCell>{record.title}</TableCell>
             <TableCell className="max-w-xs truncate">{record.description}</TableCell>
             <TableCell>
               <Badge className={statusColors[record.status]}>
