@@ -7,8 +7,11 @@ import SearchBar from "@/components/search-bar";
 import { useState } from "react";
 import type { Record } from "@shared/schema";
 
+export type SortDirection = "asc" | "desc";
+
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   const { data: records, isLoading } = useQuery<Record[]>({
     queryKey: searchQuery ? ["/api/records/search", searchQuery] : ["/api/records"],
@@ -18,9 +21,17 @@ export default function Home() {
         : "/api/records";
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch records");
-      return response.json();
+      const data = await response.json();
+      // Sort records by ID based on sortDirection
+      return data.sort((a: Record, b: Record) => {
+        return sortDirection === "asc" ? a.id - b.id : b.id - a.id;
+      });
     },
   });
+
+  const handleSort = () => {
+    setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+  };
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
@@ -45,7 +56,12 @@ export default function Home() {
       <SearchBar value={searchQuery} onChange={setSearchQuery} />
 
       <div className="mt-6">
-        <RecordsTable records={records || []} isLoading={isLoading} />
+        <RecordsTable 
+          records={records || []} 
+          isLoading={isLoading} 
+          sortDirection={sortDirection}
+          onSort={handleSort}
+        />
       </div>
     </div>
   );

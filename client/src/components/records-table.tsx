@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Copy } from "lucide-react";
+import { Pencil, Trash2, Copy, ArrowUpDown } from "lucide-react";
 import { Link } from "wouter";
 import type { Record } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
@@ -25,10 +25,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import type { SortDirection } from "@/pages/home";
 
 interface RecordsTableProps {
   records: Record[];
   isLoading: boolean;
+  sortDirection: SortDirection;
+  onSort: () => void;
 }
 
 const priorityColors = {
@@ -43,7 +46,7 @@ const statusColors = {
   done: "bg-purple-100 text-purple-800",
 };
 
-export default function RecordsTable({ records, isLoading }: RecordsTableProps) {
+export default function RecordsTable({ records, isLoading, sortDirection, onSort }: RecordsTableProps) {
   const { toast } = useToast();
 
   const { mutate: deleteRecord } = useMutation({
@@ -95,7 +98,17 @@ export default function RecordsTable({ records, isLoading }: RecordsTableProps) 
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>ID</TableHead>
+          <TableHead>
+            <button
+              onClick={onSort}
+              className="flex items-center gap-2 hover:text-accent-foreground transition-colors"
+            >
+              ID
+              <ArrowUpDown className={`h-4 w-4 transition-transform ${
+                sortDirection === "desc" ? "rotate-180" : ""
+              }`} />
+            </button>
+          </TableHead>
           <TableHead>Title</TableHead>
           <TableHead>Description</TableHead>
           <TableHead>Status</TableHead>
