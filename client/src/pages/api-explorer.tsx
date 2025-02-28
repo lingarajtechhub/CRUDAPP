@@ -226,17 +226,17 @@ export default function ApiExplorer() {
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen bg-background">
         <Sidebar className="border-r">
-          <SidebarHeader className="border-b px-4 py-2">
+          <SidebarHeader className="border-b px-6 py-4">
             <Link href="/">
-              <Button variant="ghost" className="mb-2 w-full justify-start">
+              <Button variant="ghost" className="w-full justify-start">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Records
               </Button>
             </Link>
           </SidebarHeader>
           <SidebarContent>
-            <div className="px-4 py-2">
-              <h2 className="text-sm font-semibold mb-2">API Endpoints</h2>
+            <div className="px-6 py-4">
+              <h2 className="text-sm font-semibold text-muted-foreground">API ENDPOINTS</h2>
             </div>
             <SidebarMenu>
               {endpoints.map((endpoint) => (
@@ -244,9 +244,9 @@ export default function ApiExplorer() {
                   <SidebarMenuButton
                     onClick={() => handleEndpointChange(endpoint)}
                     isActive={selectedEndpoint.path === endpoint.path}
-                    className="w-full justify-start px-4 py-2 hover:bg-accent hover:text-accent-foreground transition-colors"
+                    className="w-full justify-start px-6 py-3 hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <span className={`font-mono px-2 py-1 rounded text-xs whitespace-nowrap ${
                         endpoint.method === 'DELETE' ? 'bg-red-100 text-red-700' :
                         endpoint.method === 'PATCH' ? 'bg-yellow-100 text-yellow-700' :
@@ -265,27 +265,35 @@ export default function ApiExplorer() {
         </Sidebar>
 
         <main className="flex-1 overflow-auto">
-          <div className="container max-w-4xl mx-auto p-6">
-            <div className="space-y-6">
-              <div className="pb-4 border-b">
-                <h1 className="text-2xl font-bold">API Explorer</h1>
-                <p className="text-sm text-muted-foreground mt-1">{selectedEndpoint.description}</p>
+          {/* Jumbotron Header */}
+          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b">
+            <div className="container max-w-4xl mx-auto px-6 py-8">
+              <h1 className="text-3xl font-bold text-foreground mb-2">API Explorer</h1>
+              <p className="text-lg text-muted-foreground">
+                {selectedEndpoint.description}
+              </p>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="container max-w-4xl mx-auto px-6 py-8">
+            <div className="space-y-8">
+              {/* Request URL Section */}
+              <div className="bg-muted/50 rounded-lg p-6">
+                <h3 className="text-sm font-medium mb-3">Request URL</h3>
+                <pre className="bg-muted p-4 rounded-md overflow-x-auto font-mono text-sm">
+                  {getFullUrl()}
+                </pre>
               </div>
 
-              <div className="space-y-4">
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <h3 className="text-sm font-medium mb-2">Request URL</h3>
-                  <pre className="bg-muted p-3 rounded-md overflow-x-auto font-mono text-sm">
-                    {getFullUrl()}
-                  </pre>
-                </div>
-
+              {/* Parameters Section */}
+              <div className="space-y-6">
                 {selectedEndpoint.path.includes(":id") && (
                   <div>
-                    <h3 className="text-sm font-medium mb-2">Record ID</h3>
+                    <h3 className="text-sm font-medium mb-3">Record ID</h3>
                     <input
                       type="number"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2"
+                      className="w-full rounded-md border border-input bg-card px-4 py-2"
                       onChange={(e) => setParams({ ...params, id: e.target.value })}
                       placeholder="Enter record ID"
                       disabled={isOperationInProgress}
@@ -296,10 +304,10 @@ export default function ApiExplorer() {
 
                 {selectedEndpoint.path.includes("/search") && (
                   <div>
-                    <h3 className="text-sm font-medium mb-2">Search Query</h3>
+                    <h3 className="text-sm font-medium mb-3">Search Query</h3>
                     <input
                       type="text"
-                      className="w-full rounded-md border border-input bg-background px-3 py-2"
+                      className="w-full rounded-md border border-input bg-card px-4 py-2"
                       onChange={(e) => setParams({ ...params, q: e.target.value })}
                       placeholder="Enter search term"
                       disabled={isOperationInProgress}
@@ -310,16 +318,17 @@ export default function ApiExplorer() {
 
                 {selectedEndpoint.requestBody && (
                   <div>
-                    <h3 className="text-sm font-medium mb-2">Request Body</h3>
+                    <h3 className="text-sm font-medium mb-3">Request Body</h3>
                     <Textarea
                       value={requestBody}
                       onChange={(e) => setRequestBody(e.target.value)}
-                      className="font-mono text-sm min-h-[200px]"
+                      className="font-mono text-sm min-h-[200px] bg-card"
                       disabled={isOperationInProgress}
                     />
                   </div>
                 )}
 
+                {/* Action Buttons */}
                 {selectedEndpoint.method === "DELETE" ? (
                   <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
                     <AlertDialogTrigger asChild>
@@ -370,10 +379,11 @@ export default function ApiExplorer() {
                   </Button>
                 )}
 
+                {/* Response Section */}
                 {(requestState.response || requestState.error) && (
-                  <div className="mt-6">
-                    <h3 className="text-sm font-medium mb-2">Response</h3>
-                    <pre className={`p-4 rounded-lg overflow-auto max-h-96 font-mono text-sm ${
+                  <div className="mt-8">
+                    <h3 className="text-sm font-medium mb-3">Response</h3>
+                    <pre className={`p-6 rounded-lg overflow-auto max-h-96 font-mono text-sm ${
                       requestState.error ? 'bg-red-50 text-red-700' : 'bg-muted'
                     }`}>
                       {requestState.error ? (
