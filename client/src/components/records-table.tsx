@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Copy } from "lucide-react";
 import { Link } from "wouter";
 import type { Record } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
@@ -63,6 +63,22 @@ export default function RecordsTable({ records, isLoading }: RecordsTableProps) 
     },
   });
 
+  const handleCopyId = async (id: number) => {
+    try {
+      await navigator.clipboard.writeText(id.toString());
+      toast({
+        title: "ID copied to clipboard",
+        description: `Record ID ${id} has been copied`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to copy ID",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -91,7 +107,19 @@ export default function RecordsTable({ records, isLoading }: RecordsTableProps) 
       <TableBody>
         {records.map((record) => (
           <TableRow key={record.id}>
-            <TableCell className="font-medium">{record.id}</TableCell>
+            <TableCell className="font-medium">
+              <div className="flex items-center gap-2">
+                {record.id}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleCopyId(record.id)}
+                  className="h-6 w-6"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </TableCell>
             <TableCell>{record.title}</TableCell>
             <TableCell className="max-w-xs truncate">{record.description}</TableCell>
             <TableCell>
