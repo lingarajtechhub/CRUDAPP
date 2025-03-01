@@ -97,15 +97,15 @@ interface RequestState {
 const getMethodColor = (method: string) => {
   switch (method) {
     case 'GET':
-      return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
+      return 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 dark:border dark:border-blue-800';
     case 'POST':
-      return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
+      return 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 dark:border dark:border-green-800';
     case 'PATCH':
-      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300';
+      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border dark:border-yellow-800';
     case 'DELETE':
-      return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
+      return 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 dark:border dark:border-red-800';
     default:
-      return 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300';
+      return 'bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300 dark:border dark:border-gray-800';
   }
 };
 
@@ -258,13 +258,13 @@ export default function ApiExplorer() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen bg-background">
-        <Sidebar className="border-r">
-          <SidebarHeader className="border-b px-6 py-4">
+        <Sidebar className="border-r shadow-lg">
+          <SidebarHeader className="border-b bg-card px-6 py-4">
             <div className="space-y-4">
               <Link href="/">
                 <Button
                   variant="outline"
-                  className="w-full justify-start bg-background hover:bg-accent"
+                  className="w-full justify-start bg-background hover:bg-accent shadow-sm transition-all duration-200"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Records
@@ -282,13 +282,13 @@ export default function ApiExplorer() {
                   <SidebarMenuButton
                     onClick={() => handleEndpointChange(endpoint)}
                     isActive={isEndpointActive(endpoint, selectedEndpoint)}
-                    className="w-full justify-start px-4 py-3 hover:bg-accent hover:text-accent-foreground transition-colors"
+                    className="w-full justify-start px-4 py-3 hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <span className={`font-mono px-2 py-1 rounded text-xs whitespace-nowrap ${getMethodColor(endpoint.method)}`}>
+                      <span className={`font-mono px-2 py-1 rounded text-xs whitespace-nowrap shadow-sm transition-colors ${getMethodColor(endpoint.method)}`}>
                         {endpoint.method}
                       </span>
-                      <span className="truncate text-sm">{endpoint.path}</span>
+                      <span className="truncate text-sm font-medium">{endpoint.path}</span>
                     </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -298,9 +298,9 @@ export default function ApiExplorer() {
         </Sidebar>
 
         <main className="flex-1 overflow-auto">
-          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b">
+          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b shadow-sm">
             <div className="container max-w-4xl mx-auto p-8">
-              <h1 className="text-3xl font-bold text-foreground mb-2">API Explorer</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">API Explorer</h1>
               <p className="text-lg text-muted-foreground">
                 {selectedEndpoint.description}
               </p>
@@ -309,7 +309,7 @@ export default function ApiExplorer() {
 
           <div className="container max-w-4xl mx-auto p-8">
             <div className="space-y-8">
-              <Card>
+              <Card className="shadow-md transition-shadow hover:shadow-lg">
                 <CardHeader>
                   <CardTitle>Request Details</CardTitle>
                   <CardDescription>
@@ -317,10 +317,10 @@ export default function ApiExplorer() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div>
                       <h3 className="text-sm font-semibold mb-2">Request URL</h3>
-                      <div className="bg-muted rounded-lg p-4">
+                      <div className="bg-muted rounded-lg p-4 border shadow-inner">
                         <code className="text-sm">{getFullUrl()}</code>
                       </div>
                     </div>
@@ -330,7 +330,7 @@ export default function ApiExplorer() {
                         <h3 className="text-sm font-semibold mb-2">Record ID</h3>
                         <input
                           type="number"
-                          className="w-full rounded-md border border-input bg-background px-4 py-2"
+                          className="w-full rounded-lg border border-input bg-background px-4 py-2 shadow-sm transition-colors focus:ring-2 focus:ring-ring"
                           onChange={(e) => setParams({ ...params, id: e.target.value })}
                           placeholder="Enter record ID"
                           disabled={isOperationInProgress}
@@ -344,7 +344,7 @@ export default function ApiExplorer() {
                         <h3 className="text-sm font-semibold mb-2">Search Query</h3>
                         <input
                           type="text"
-                          className="w-full rounded-md border border-input bg-background px-4 py-2"
+                          className="w-full rounded-lg border border-input bg-background px-4 py-2 shadow-sm transition-colors focus:ring-2 focus:ring-ring"
                           onChange={(e) => setParams({ ...params, q: e.target.value })}
                           placeholder="Enter search term"
                           disabled={isOperationInProgress}
@@ -359,7 +359,7 @@ export default function ApiExplorer() {
                         <Textarea
                           value={requestBody}
                           onChange={(e) => setRequestBody(e.target.value)}
-                          className="font-mono text-sm min-h-[200px] bg-background"
+                          className="font-mono text-sm min-h-[200px] bg-background shadow-inner rounded-lg"
                           disabled={isOperationInProgress}
                           placeholder="Enter request body as JSON"
                         />
@@ -371,7 +371,7 @@ export default function ApiExplorer() {
                         <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
                           <AlertDialogTrigger asChild>
                             <Button
-                              className="w-full bg-red-600 hover:bg-red-700 text-white"
+                              className="w-full bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all duration-200"
                               disabled={requestState.loading || isOperationInProgress}
                             >
                               {requestState.loading ? (
@@ -404,7 +404,7 @@ export default function ApiExplorer() {
                         <Button
                           onClick={handleSendRequest}
                           disabled={requestState.loading || isOperationInProgress}
-                          className={`w-full ${
+                          className={`w-full shadow-sm transition-all duration-200 ${
                             selectedEndpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' :
                               selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700 text-white' :
                                 ''
@@ -429,7 +429,7 @@ export default function ApiExplorer() {
               </Card>
 
               {(requestState.response || requestState.error) && (
-                <Card>
+                <Card className="shadow-md transition-shadow hover:shadow-lg">
                   <CardHeader>
                     <CardTitle>Response</CardTitle>
                     <CardDescription>
@@ -437,7 +437,7 @@ export default function ApiExplorer() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className={`rounded-lg overflow-hidden ${
+                    <div className={`rounded-lg overflow-hidden shadow-inner ${
                       requestState.error ? 'bg-red-50 dark:bg-red-900/20' : 'bg-muted'
                     }`}>
                       {requestState.error ? (
