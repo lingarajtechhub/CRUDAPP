@@ -2,9 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import json from 'react-syntax-highlighter/dist/esm/languages/hljs/json';
+import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +20,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
@@ -25,6 +35,8 @@ import {
   SidebarMenuButton,
   SidebarProvider,
 } from "@/components/ui/sidebar";
+
+SyntaxHighlighter.registerLanguage('json', json);
 
 interface Endpoint {
   method: string;
@@ -80,6 +92,21 @@ interface RequestState {
   response?: any;
   error?: string;
 }
+
+const getMethodColor = (method: string) => {
+  switch (method) {
+    case 'GET':
+      return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
+    case 'POST':
+      return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
+    case 'PATCH':
+      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300';
+    case 'DELETE':
+      return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
+    default:
+      return 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300';
+  }
+};
 
 export default function ApiExplorer() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint>(endpoints[0]);
@@ -251,12 +278,7 @@ export default function ApiExplorer() {
                     className="w-full justify-start px-4 py-3 hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className={`font-mono px-2 py-1 rounded text-xs whitespace-nowrap ${
-                        endpoint.method === 'DELETE' ? 'bg-red-100 text-red-700' :
-                        endpoint.method === 'PATCH' ? 'bg-yellow-100 text-yellow-700' :
-                        endpoint.method === 'POST' ? 'bg-green-100 text-green-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
+                      <span className={`font-mono px-2 py-1 rounded text-xs whitespace-nowrap ${getMethodColor(endpoint.method)}`}>
                         {endpoint.method}
                       </span>
                       <span className="truncate text-sm">{endpoint.path}</span>
@@ -280,121 +302,158 @@ export default function ApiExplorer() {
 
           <div className="container max-w-4xl mx-auto p-8">
             <div className="space-y-8">
-              <div className="bg-muted/50 rounded-lg p-6">
-                <h3 className="text-sm font-semibold mb-3">Request URL</h3>
-                <pre className="bg-muted p-4 rounded-md overflow-x-auto font-mono text-sm">
-                  {getFullUrl()}
-                </pre>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Request Details</CardTitle>
+                  <CardDescription>
+                    Endpoint URL and parameters
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">Request URL</h3>
+                      <div className="bg-muted rounded-lg p-4">
+                        <code className="text-sm">{getFullUrl()}</code>
+                      </div>
+                    </div>
 
-              <div className="space-y-6">
-                {selectedEndpoint.path.includes(":id") && (
-                  <div>
-                    <h3 className="text-sm font-semibold mb-3">Record ID</h3>
-                    <input
-                      type="number"
-                      className="w-full rounded-md border border-input bg-card px-4 py-2"
-                      onChange={(e) => setParams({ ...params, id: e.target.value })}
-                      placeholder="Enter record ID"
-                      disabled={isOperationInProgress}
-                      value={params.id || ''}
-                    />
-                  </div>
-                )}
+                    {selectedEndpoint.path.includes(":id") && (
+                      <div>
+                        <h3 className="text-sm font-semibold mb-2">Record ID</h3>
+                        <input
+                          type="number"
+                          className="w-full rounded-md border border-input bg-background px-4 py-2"
+                          onChange={(e) => setParams({ ...params, id: e.target.value })}
+                          placeholder="Enter record ID"
+                          disabled={isOperationInProgress}
+                          value={params.id || ''}
+                        />
+                      </div>
+                    )}
 
-                {selectedEndpoint.path.includes("/search") && (
-                  <div>
-                    <h3 className="text-sm font-semibold mb-3">Search Query</h3>
-                    <input
-                      type="text"
-                      className="w-full rounded-md border border-input bg-card px-4 py-2"
-                      onChange={(e) => setParams({ ...params, q: e.target.value })}
-                      placeholder="Enter search term"
-                      disabled={isOperationInProgress}
-                      value={params.q || ''}
-                    />
-                  </div>
-                )}
+                    {selectedEndpoint.path.includes("/search") && (
+                      <div>
+                        <h3 className="text-sm font-semibold mb-2">Search Query</h3>
+                        <input
+                          type="text"
+                          className="w-full rounded-md border border-input bg-background px-4 py-2"
+                          onChange={(e) => setParams({ ...params, q: e.target.value })}
+                          placeholder="Enter search term"
+                          disabled={isOperationInProgress}
+                          value={params.q || ''}
+                        />
+                      </div>
+                    )}
 
-                {selectedEndpoint.requestBody && (
-                  <div>
-                    <h3 className="text-sm font-semibold mb-3">Request Body</h3>
-                    <Textarea
-                      value={requestBody}
-                      onChange={(e) => setRequestBody(e.target.value)}
-                      className="font-mono text-sm min-h-[200px] bg-card"
-                      disabled={isOperationInProgress}
-                    />
-                  </div>
-                )}
+                    {selectedEndpoint.requestBody && (
+                      <div>
+                        <h3 className="text-sm font-semibold mb-2">Request Body</h3>
+                        <Textarea
+                          value={requestBody}
+                          onChange={(e) => setRequestBody(e.target.value)}
+                          className="font-mono text-sm min-h-[200px] bg-background"
+                          disabled={isOperationInProgress}
+                          placeholder="Enter request body as JSON"
+                        />
+                      </div>
+                    )}
 
-                <div className="pt-4">
-                  {selectedEndpoint.method === "DELETE" ? (
-                    <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          className="w-full bg-red-600 hover:bg-red-700 text-white"
-                          disabled={requestState.loading || isOperationInProgress}
-                        >
-                          <Send className="w-4 h-4 mr-2" />
-                          Delete Record
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Record</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete this record? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={executeDelete}
-                            className="bg-red-600 hover:bg-red-700 text-white"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  ) : (
-                    <Button
-                      onClick={handleSendRequest}
-                      disabled={requestState.loading || isOperationInProgress}
-                      className={`w-full ${
-                        selectedEndpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' :
-                        selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700 text-white' :
-                        ''
-                      }`}
-                    >
-                      {requestState.loading ? (
-                        "Sending..."
+                    <div className="pt-4">
+                      {selectedEndpoint.method === "DELETE" ? (
+                        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              className="w-full bg-red-600 hover:bg-red-700 text-white"
+                              disabled={requestState.loading || isOperationInProgress}
+                            >
+                              {requestState.loading ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              ) : (
+                                <Send className="w-4 h-4 mr-2" />
+                              )}
+                              Delete Record
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Record</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this record? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={executeDelete}
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       ) : (
-                        <>
-                          <Send className="w-4 h-4 mr-2" />
-                          Send Request
-                        </>
+                        <Button
+                          onClick={handleSendRequest}
+                          disabled={requestState.loading || isOperationInProgress}
+                          className={`w-full ${
+                            selectedEndpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' :
+                            selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700 text-white' :
+                            ''
+                          }`}
+                        >
+                          {requestState.loading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4 mr-2" />
+                              Send Request
+                            </>
+                          )}
+                        </Button>
                       )}
-                    </Button>
-                  )}
-                </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {(requestState.response || requestState.error) && (
-                  <div className="mt-8">
-                    <h3 className="text-sm font-semibold mb-3">Response</h3>
-                    <pre className={`p-6 rounded-lg overflow-auto max-h-96 font-mono text-sm ${
-                      requestState.error ? 'bg-red-50 text-red-700' : 'bg-muted'
+              {(requestState.response || requestState.error) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Response</CardTitle>
+                    <CardDescription>
+                      {requestState.error ? 'Error details' : 'Response details'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`rounded-lg overflow-hidden ${
+                      requestState.error ? 'bg-red-50 dark:bg-red-900/20' : 'bg-muted'
                     }`}>
                       {requestState.error ? (
-                        requestState.error
+                        <div className="p-4 text-red-700 dark:text-red-300">
+                          {requestState.error}
+                        </div>
                       ) : (
-                        JSON.stringify(requestState.response, null, 2)
+                        <SyntaxHighlighter
+                          language="json"
+                          style={vs2015}
+                          customStyle={{
+                            margin: 0,
+                            padding: '1rem',
+                            background: 'transparent',
+                          }}
+                        >
+                          {JSON.stringify(requestState.response, null, 2)}
+                        </SyntaxHighlighter>
                       )}
-                    </pre>
-                  </div>
-                )}
-              </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </main>
