@@ -277,14 +277,17 @@ export default function ApiExplorer() {
           </SidebarHeader>
           <SidebarContent className="px-4">
             <SidebarMenu>
-              {endpoints.map((endpoint) => (
+              {endpoints.map((endpoint, index) => (
                 <SidebarMenuItem key={`${endpoint.method}-${endpoint.path}`}>
                   <SidebarMenuButton
                     onClick={() => handleEndpointChange(endpoint)}
                     isActive={isEndpointActive(endpoint, selectedEndpoint)}
-                    className="w-full justify-start px-6 py-4 hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
+                    className="w-full justify-start px-6 py-4 hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg relative"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                      {index + 1}
+                    </div>
+                    <div className="flex items-center gap-4 ml-6">
                       <span className={`font-mono px-3 py-1.5 rounded text-xs whitespace-nowrap shadow-sm transition-colors ${getMethodColor(endpoint.method)}`}>
                         {endpoint.method}
                       </span>
