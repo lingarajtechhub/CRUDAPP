@@ -284,7 +284,7 @@ export default function ApiExplorer() {
                     isActive={isEndpointActive(endpoint, selectedEndpoint)}
                     className="w-full justify-start px-6 py-4 hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg relative"
                   >
-                    <div className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-accent/10 text-accent-foreground ring-1 ring-accent/20 font-mono text-xs font-bold">
+                    <div className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-primary/20 text-primary font-mono text-xs font-bold ring-1 ring-primary/30">
                       {index + 1}
                     </div>
                     <div className="flex items-center gap-4 ml-8">
