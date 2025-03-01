@@ -39,7 +39,16 @@ app.use((req, res, next) => {
 (async () => {
   try {
     log('Starting server initialization...');
+
+    // Check environment
+    if (!process.env.DATABASE_URL) {
+      log('Warning: DATABASE_URL is not set');
+    }
+
+    // Initialize routes
+    log('Registering routes...');
     const server = await registerRoutes(app);
+    log('Routes registered successfully');
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
@@ -52,18 +61,22 @@ app.use((req, res, next) => {
       res.status(status).json({ message });
     });
 
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
+    // Setup Vite or static serving
     if (app.get("env") === "development") {
+      log('Setting up Vite development server...');
       await setupVite(app, server);
+      log('Vite server setup complete');
     } else {
+      log('Setting up static file serving...');
       serveStatic(app);
+      log('Static file serving setup complete');
     }
 
     // ALWAYS serve the app on port 5000
     // this serves both the API and the client
     const port = 5000;
+    log(`Attempting to start server on port ${port}...`);
+
     server.listen({
       port,
       host: "0.0.0.0",
