@@ -36,6 +36,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 
+// Register the JSON language for syntax highlighting
 SyntaxHighlighter.registerLanguage('json', json);
 
 interface Endpoint {
@@ -108,10 +109,15 @@ const getMethodColor = (method: string) => {
   }
 };
 
+const isEndpointActive = (endpoint: Endpoint, selectedEndpoint: Endpoint): boolean => {
+  if (!endpoint || !selectedEndpoint) return false;
+  return endpoint.method === selectedEndpoint.method && endpoint.path === selectedEndpoint.path;
+};
+
 export default function ApiExplorer() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint>(endpoints[0]);
   const [requestBody, setRequestBody] = useState<string>(
-    selectedEndpoint.requestBody ? JSON.stringify(selectedEndpoint.requestBody, null, 2) : ""
+    selectedEndpoint?.requestBody ? JSON.stringify(selectedEndpoint.requestBody, null, 2) : ""
   );
   const [requestState, setRequestState] = useState<RequestState>({ loading: false });
   const [params, setParams] = useState<Record<string, string>>({});
@@ -119,6 +125,7 @@ export default function ApiExplorer() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleEndpointChange = (endpoint: Endpoint) => {
+    if (!endpoint) return;
     setSelectedEndpoint(endpoint);
     setRequestBody(endpoint.requestBody ? JSON.stringify(endpoint.requestBody, null, 2) : "");
     setRequestState({ loading: false });
@@ -255,8 +262,8 @@ export default function ApiExplorer() {
           <SidebarHeader className="border-b px-6 py-4">
             <div className="space-y-4">
               <Link href="/">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-start bg-background hover:bg-accent"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -274,7 +281,7 @@ export default function ApiExplorer() {
                 <SidebarMenuItem key={`${endpoint.method}-${endpoint.path}`}>
                   <SidebarMenuButton
                     onClick={() => handleEndpointChange(endpoint)}
-                    isActive={selectedEndpoint.path === endpoint.path}
+                    isActive={isEndpointActive(endpoint, selectedEndpoint)}
                     className="w-full justify-start px-4 py-3 hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
                     <div className="flex items-center gap-3">
@@ -399,8 +406,8 @@ export default function ApiExplorer() {
                           disabled={requestState.loading || isOperationInProgress}
                           className={`w-full ${
                             selectedEndpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' :
-                            selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700 text-white' :
-                            ''
+                              selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700 text-white' :
+                                ''
                           }`}
                         >
                           {requestState.loading ? (
