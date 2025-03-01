@@ -259,14 +259,14 @@ export default function ApiExplorer() {
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen bg-background">
         <Sidebar className="border-r shadow-lg">
-          <SidebarHeader className="border-b bg-card px-6 py-4">
-            <div className="space-y-4">
+          <SidebarHeader className="border-b bg-card px-8 py-6">
+            <div className="space-y-6">
               <Link href="/">
                 <Button
                   variant="outline"
                   className="w-full justify-start bg-background hover:bg-accent shadow-sm transition-all duration-200"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ArrowLeft className="w-4 h-4 mr-3" />
                   Back to Records
                 </Button>
               </Link>
@@ -275,17 +275,17 @@ export default function ApiExplorer() {
               </h2>
             </div>
           </SidebarHeader>
-          <SidebarContent className="px-2">
+          <SidebarContent className="px-4">
             <SidebarMenu>
               {endpoints.map((endpoint) => (
                 <SidebarMenuItem key={`${endpoint.method}-${endpoint.path}`}>
                   <SidebarMenuButton
                     onClick={() => handleEndpointChange(endpoint)}
                     isActive={isEndpointActive(endpoint, selectedEndpoint)}
-                    className="w-full justify-start px-4 py-3 hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
+                    className="w-full justify-start px-6 py-4 hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className={`font-mono px-2 py-1 rounded text-xs whitespace-nowrap shadow-sm transition-colors ${getMethodColor(endpoint.method)}`}>
+                    <div className="flex items-center gap-4">
+                      <span className={`font-mono px-3 py-1.5 rounded text-xs whitespace-nowrap shadow-sm transition-colors ${getMethodColor(endpoint.method)}`}>
                         {endpoint.method}
                       </span>
                       <span className="truncate text-sm font-medium">{endpoint.path}</span>
@@ -299,8 +299,8 @@ export default function ApiExplorer() {
 
         <main className="flex-1 overflow-auto">
           <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b shadow-sm">
-            <div className="container max-w-4xl mx-auto p-8">
-              <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">API Explorer</h1>
+            <div className="container max-w-4xl mx-auto px-8 py-10">
+              <h1 className="text-3xl font-bold text-foreground mb-3 tracking-tight">API Explorer</h1>
               <p className="text-lg text-muted-foreground">
                 {selectedEndpoint.description}
               </p>
@@ -310,27 +310,27 @@ export default function ApiExplorer() {
           <div className="container max-w-4xl mx-auto p-8">
             <div className="space-y-8">
               <Card className="shadow-md transition-shadow hover:shadow-lg">
-                <CardHeader>
+                <CardHeader className="px-8 pt-8">
                   <CardTitle>Request Details</CardTitle>
                   <CardDescription>
                     Endpoint URL and parameters
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
+                <CardContent className="px-8 pb-8">
+                  <div className="space-y-8">
                     <div>
-                      <h3 className="text-sm font-semibold mb-2">Request URL</h3>
-                      <div className="bg-muted rounded-lg p-4 border shadow-inner">
+                      <h3 className="text-sm font-semibold mb-3">Request URL</h3>
+                      <div className="bg-muted rounded-lg p-6 border shadow-inner">
                         <code className="text-sm">{getFullUrl()}</code>
                       </div>
                     </div>
 
                     {selectedEndpoint.path.includes(":id") && (
                       <div>
-                        <h3 className="text-sm font-semibold mb-2">Record ID</h3>
+                        <h3 className="text-sm font-semibold mb-3">Record ID</h3>
                         <input
                           type="number"
-                          className="w-full rounded-lg border border-input bg-background px-4 py-2 shadow-sm transition-colors focus:ring-2 focus:ring-ring"
+                          className="w-full rounded-lg border border-input bg-background px-4 py-3 shadow-sm transition-colors focus:ring-2 focus:ring-ring"
                           onChange={(e) => setParams({ ...params, id: e.target.value })}
                           placeholder="Enter record ID"
                           disabled={isOperationInProgress}
@@ -341,10 +341,10 @@ export default function ApiExplorer() {
 
                     {selectedEndpoint.path.includes("/search") && (
                       <div>
-                        <h3 className="text-sm font-semibold mb-2">Search Query</h3>
+                        <h3 className="text-sm font-semibold mb-3">Search Query</h3>
                         <input
                           type="text"
-                          className="w-full rounded-lg border border-input bg-background px-4 py-2 shadow-sm transition-colors focus:ring-2 focus:ring-ring"
+                          className="w-full rounded-lg border border-input bg-background px-4 py-3 shadow-sm transition-colors focus:ring-2 focus:ring-ring"
                           onChange={(e) => setParams({ ...params, q: e.target.value })}
                           placeholder="Enter search term"
                           disabled={isOperationInProgress}
@@ -355,11 +355,11 @@ export default function ApiExplorer() {
 
                     {selectedEndpoint.requestBody && (
                       <div>
-                        <h3 className="text-sm font-semibold mb-2">Request Body</h3>
+                        <h3 className="text-sm font-semibold mb-3">Request Body</h3>
                         <Textarea
                           value={requestBody}
                           onChange={(e) => setRequestBody(e.target.value)}
-                          className="font-mono text-sm min-h-[200px] bg-background shadow-inner rounded-lg"
+                          className="font-mono text-sm min-h-[200px] bg-background shadow-inner rounded-lg px-4 py-3"
                           disabled={isOperationInProgress}
                           placeholder="Enter request body as JSON"
                         />
@@ -371,18 +371,18 @@ export default function ApiExplorer() {
                         <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
                           <AlertDialogTrigger asChild>
                             <Button
-                              className="w-full bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all duration-200"
+                              className="w-full bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all duration-200 py-6"
                               disabled={requestState.loading || isOperationInProgress}
                             >
                               {requestState.loading ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                <Loader2 className="w-5 h-5 mr-3 animate-spin" />
                               ) : (
-                                <Send className="w-4 h-4 mr-2" />
+                                <Send className="w-5 h-5 mr-3" />
                               )}
                               Delete Record
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent className="sm:max-w-[425px]">
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Record</AlertDialogTitle>
                               <AlertDialogDescription>
@@ -404,7 +404,7 @@ export default function ApiExplorer() {
                         <Button
                           onClick={handleSendRequest}
                           disabled={requestState.loading || isOperationInProgress}
-                          className={`w-full shadow-sm transition-all duration-200 ${
+                          className={`w-full shadow-sm transition-all duration-200 py-6 ${
                             selectedEndpoint.method === 'PATCH' ? 'bg-yellow-600 hover:bg-yellow-700 text-white' :
                               selectedEndpoint.method === 'POST' ? 'bg-green-600 hover:bg-green-700 text-white' :
                                 ''
@@ -412,12 +412,12 @@ export default function ApiExplorer() {
                         >
                           {requestState.loading ? (
                             <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              <Loader2 className="w-5 h-5 mr-3 animate-spin" />
                               Sending...
                             </>
                           ) : (
                             <>
-                              <Send className="w-4 h-4 mr-2" />
+                              <Send className="w-5 h-5 mr-3" />
                               Send Request
                             </>
                           )}
@@ -430,18 +430,18 @@ export default function ApiExplorer() {
 
               {(requestState.response || requestState.error) && (
                 <Card className="shadow-md transition-shadow hover:shadow-lg">
-                  <CardHeader>
+                  <CardHeader className="px-8 pt-8">
                     <CardTitle>Response</CardTitle>
                     <CardDescription>
                       {requestState.error ? 'Error details' : 'Response details'}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="px-8 pb-8">
                     <div className={`rounded-lg overflow-hidden shadow-inner ${
                       requestState.error ? 'bg-red-50 dark:bg-red-900/20' : 'bg-muted'
                     }`}>
                       {requestState.error ? (
-                        <div className="p-4 text-red-700 dark:text-red-300">
+                        <div className="p-6 text-red-700 dark:text-red-300">
                           {requestState.error}
                         </div>
                       ) : (
@@ -450,7 +450,7 @@ export default function ApiExplorer() {
                           style={vs2015}
                           customStyle={{
                             margin: 0,
-                            padding: '1rem',
+                            padding: '1.5rem',
                             background: 'transparent',
                           }}
                         >
