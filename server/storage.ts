@@ -13,76 +13,100 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getRecords(): Promise<Record[]> {
-    return await db.select().from(records).orderBy(records.id);
+    try {
+      return await db.select().from(records).orderBy(records.id);
+    } catch (error) {
+      console.error('Error fetching records:', error);
+      throw new Error('Failed to fetch records from database');
+    }
   }
 
   async getRecord(id: number): Promise<Record | undefined> {
-    const [record] = await db.select().from(records).where(eq(records.id, id));
-    return record;
+    try {
+      const [record] = await db.select().from(records).where(eq(records.id, id));
+      return record;
+    } catch (error) {
+      console.error(`Error fetching record ${id}:`, error);
+      throw new Error('Failed to fetch record from database');
+    }
   }
 
   async createRecord(insertRecord: InsertRecord): Promise<Record> {
-    const [record] = await db
-      .insert(records)
-      .values({
-        ...insertRecord,
-        createdAt: new Date(),
-      })
-      .returning();
-    return record;
+    try {
+      const [record] = await db
+        .insert(records)
+        .values({
+          ...insertRecord,
+          createdAt: new Date(),
+        })
+        .returning();
+      return record;
+    } catch (error) {
+      console.error('Error creating record:', error);
+      throw new Error('Failed to create record in database');
+    }
   }
 
   async updateRecord(id: number, updateRecord: InsertRecord): Promise<Record | undefined> {
-    // Use transaction to ensure atomic update
-    return await db.transaction(async (tx) => {
-      // Check if record exists within transaction
-      const [existing] = await tx.select().from(records).where(eq(records.id, id));
-      if (!existing) {
-        return undefined;
-      }
+    try {
+      return await db.transaction(async (tx) => {
+        const [existing] = await tx.select().from(records).where(eq(records.id, id));
+        if (!existing) {
+          return undefined;
+        }
 
-      // Perform update within same transaction
-      const [updated] = await tx
-        .update(records)
-        .set(updateRecord)
-        .where(eq(records.id, id))
-        .returning();
+        const [updated] = await tx
+          .update(records)
+          .set(updateRecord)
+          .where(eq(records.id, id))
+          .returning();
 
-      return updated;
-    });
+        return updated;
+      });
+    } catch (error) {
+      console.error(`Error updating record ${id}:`, error);
+      throw new Error('Failed to update record in database');
+    }
   }
 
   async deleteRecord(id: number): Promise<boolean> {
-    // Use transaction to ensure atomic delete
-    return await db.transaction(async (tx) => {
-      // Check if record exists within transaction
-      const [existing] = await tx.select().from(records).where(eq(records.id, id));
-      if (!existing) {
-        return false;
-      }
+    try {
+      return await db.transaction(async (tx) => {
+        const [existing] = await tx.select().from(records).where(eq(records.id, id));
+        if (!existing) {
+          return false;
+        }
 
-      // Perform delete within same transaction
-      const [deleted] = await tx
-        .delete(records)
-        .where(eq(records.id, id))
-        .returning();
+        const [deleted] = await tx
+          .delete(records)
+          .where(eq(records.id, id))
+          .returning();
 
-      return !!deleted;
-    });
+        return !!deleted;
+      });
+    } catch (error) {
+      console.error(`Error deleting record ${id}:`, error);
+      throw new Error('Failed to delete record from database');
+    }
   }
 
   async searchRecords(query: string): Promise<Record[]> {
-    if (!query) {
-      return this.getRecords();
-    }
+    try {
+      if (!query) {
+        return this.getRecords();
+      }
 
-    return await db
-      .select()
-      .from(records)
-      .where(
-        like(records.title, `%${query}%`)
-      )
-      .orderBy(records.id);
+      return await db
+        .select()
+        .from(records)
+        .where(
+          like(records.title, `%${query}%`)
+        )
+        .orderBy(records.id);
+    } catch (error) {
+      console.error('Error searching records:', error);
+      throw new Error('Failed to search records in database');
+    }
   }
 }
 

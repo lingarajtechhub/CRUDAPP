@@ -270,7 +270,7 @@ export default function ApiExplorer() {
                   Back to Records
                 </Button>
               </Link>
-              <h2 className="text-sm font-semibold text-muted-foreground tracking-tight">
+              <h2 className="text-sm font-semibold text-muted-foreground tracking-tight mb-4">
                 API ENDPOINTS
               </h2>
             </div>
