@@ -3,7 +3,7 @@ import { useState, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Send, Loader2, ChevronDown } from "lucide-react";
+import { ArrowLeft, Send, Loader2, ChevronDown, FileJson, Plus, PencilLine } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -128,6 +128,19 @@ const getMethodColor = (method: string) => {
 const isEndpointActive = (endpoint: Endpoint, selectedEndpoint: Endpoint): boolean => {
   if (!endpoint || !selectedEndpoint) return false;
   return endpoint.method === selectedEndpoint.method && endpoint.path === selectedEndpoint.path;
+};
+
+const getOperationIcon = (groupKey: string) => {
+  switch (groupKey) {
+    case 'read':
+      return <FileJson className="h-4 w-4" />;
+    case 'write':
+      return <Plus className="h-4 w-4" />;
+    case 'modify':
+      return <PencilLine className="h-4 w-4" />;
+    default:
+      return null;
+  }
 };
 
 export default function ApiExplorer() {
@@ -288,7 +301,7 @@ export default function ApiExplorer() {
     <Suspense fallback={<div>Loading...</div>}>
       <SidebarProvider defaultOpen={!isMobile}>
         <div className="flex min-h-screen bg-background">
-          <Sidebar className="border-r shadow-lg">
+          <Sidebar collapsible="icon" className="border-r shadow-lg">
             <SidebarHeader className="border-b bg-card px-8 py-6">
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -318,7 +331,10 @@ export default function ApiExplorer() {
                     className="mb-4"
                   >
                     <CollapsibleTrigger className="flex items-center justify-between w-full px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent">
-                      <span className="capitalize">{groupKey} Operations</span>
+                      <span className="flex items-center gap-2">
+                        {getOperationIcon(groupKey)}
+                        <span className="capitalize">{groupKey} Operations</span>
+                      </span>
                       <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${
                         openSections[groupKey] ? 'transform rotate-180' : ''
                       }`} />
@@ -330,6 +346,7 @@ export default function ApiExplorer() {
                             onClick={() => handleEndpointChange(endpoint)}
                             isActive={isEndpointActive(endpoint, selectedEndpoint)}
                             className="w-full justify-start px-6 py-4 hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg relative"
+                            tooltip={`${endpoint.method} ${endpoint.path}`}
                           >
                             <div className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-primary/20 text-primary font-mono text-xs font-bold ring-1 ring-primary/30">
                               {groupIndex + 1}.{index + 1}
