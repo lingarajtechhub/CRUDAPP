@@ -2,12 +2,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Loader2, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 import { queryClient } from "@/lib/queryClient";
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import json from 'react-syntax-highlighter/dist/esm/languages/hljs/json';
 import { vs2015 } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,45 +53,52 @@ interface Endpoint {
 
 const baseUrl = window.location.origin;
 
-const endpoints: Endpoint[] = [
-  {
-    method: "GET",
-    path: "/api/records",
-    description: "List all records",
-  },
-  {
-    method: "GET",
-    path: "/api/records/search",
-    description: "Search records",
-  },
-  {
-    method: "POST",
-    path: "/api/records",
-    description: "Create a new record",
-    requestBody: {
-      title: "Sample Title",
-      description: "Sample Description",
-      status: "todo",
-      priority: "medium"
+// Group endpoints by type
+const endpointGroups = {
+  read: [
+    {
+      method: "GET",
+      path: "/api/records",
+      description: "List all records",
+    },
+    {
+      method: "GET",
+      path: "/api/records/search",
+      description: "Search records",
+    },
+  ],
+  write: [
+    {
+      method: "POST",
+      path: "/api/records",
+      description: "Create a new record",
+      requestBody: {
+        title: "Sample Title",
+        description: "Sample Description",
+        status: "todo",
+        priority: "medium"
+      }
+    },
+  ],
+  modify: [
+    {
+      method: "PATCH",
+      path: "/api/records/:id",
+      description: "Update a record",
+      requestBody: {
+        title: "Updated Title",
+        description: "Updated Description",
+        status: "in_progress",
+        priority: "high"
+      }
+    },
+    {
+      method: "DELETE",
+      path: "/api/records/:id",
+      description: "Delete a record"
     }
-  },
-  {
-    method: "PATCH",
-    path: "/api/records/:id",
-    description: "Update a record",
-    requestBody: {
-      title: "Updated Title",
-      description: "Updated Description",
-      status: "in_progress",
-      priority: "high"
-    }
-  },
-  {
-    method: "DELETE",
-    path: "/api/records/:id",
-    description: "Delete a record"
-  }
-];
+  ]
+};
 
 interface RequestState {
   loading: boolean;
@@ -115,7 +127,12 @@ const isEndpointActive = (endpoint: Endpoint, selectedEndpoint: Endpoint): boole
 };
 
 export default function ApiExplorer() {
-  const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint>(endpoints[0]);
+  const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint>(endpointGroups.read[0]);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    read: true,
+    write: true,
+    modify: true
+  });
   const [requestBody, setRequestBody] = useState<string>(
     selectedEndpoint?.requestBody ? JSON.stringify(selectedEndpoint.requestBody, null, 2) : ""
   );
@@ -255,6 +272,13 @@ export default function ApiExplorer() {
     return url;
   };
 
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen bg-background">
@@ -277,24 +301,41 @@ export default function ApiExplorer() {
           </SidebarHeader>
           <SidebarContent className="px-4">
             <SidebarMenu>
-              {endpoints.map((endpoint, index) => (
-                <SidebarMenuItem key={`${endpoint.method}-${endpoint.path}`}>
-                  <SidebarMenuButton
-                    onClick={() => handleEndpointChange(endpoint)}
-                    isActive={isEndpointActive(endpoint, selectedEndpoint)}
-                    className="w-full justify-start px-6 py-4 hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg relative"
-                  >
-                    <div className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-primary/20 text-primary font-mono text-xs font-bold ring-1 ring-primary/30">
-                      {index + 1}
-                    </div>
-                    <div className="flex items-center gap-4 ml-8">
-                      <span className={`font-mono px-3 py-1.5 rounded text-xs whitespace-nowrap shadow-sm transition-colors ${getMethodColor(endpoint.method)}`}>
-                        {endpoint.method}
-                      </span>
-                      <span className="truncate text-sm font-medium">{endpoint.path}</span>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+              {Object.entries(endpointGroups).map(([groupKey, endpoints], groupIndex) => (
+                <Collapsible
+                  key={groupKey}
+                  open={openSections[groupKey]}
+                  onOpenChange={() => toggleSection(groupKey)}
+                  className="mb-4"
+                >
+                  <CollapsibleTrigger className="flex items-center justify-between w-full px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent">
+                    <span className="capitalize">{groupKey} Operations</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${
+                      openSections[groupKey] ? 'transform rotate-180' : ''
+                    }`} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-1 mt-1">
+                    {endpoints.map((endpoint, index) => (
+                      <SidebarMenuItem key={`${endpoint.method}-${endpoint.path}`}>
+                        <SidebarMenuButton
+                          onClick={() => handleEndpointChange(endpoint)}
+                          isActive={isEndpointActive(endpoint, selectedEndpoint)}
+                          className="w-full justify-start px-6 py-4 hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg relative"
+                        >
+                          <div className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-full bg-primary/20 text-primary font-mono text-xs font-bold ring-1 ring-primary/30">
+                            {groupIndex + 1}.{index + 1}
+                          </div>
+                          <div className="flex items-center gap-4 ml-8">
+                            <span className={`font-mono px-3 py-1.5 rounded text-xs whitespace-nowrap shadow-sm transition-colors ${getMethodColor(endpoint.method)}`}>
+                              {endpoint.method}
+                            </span>
+                            <span className="truncate text-sm font-medium">{endpoint.path}</span>
+                          </div>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
               ))}
             </SidebarMenu>
           </SidebarContent>
