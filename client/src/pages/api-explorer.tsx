@@ -301,7 +301,11 @@ export default function ApiExplorer() {
     <Suspense fallback={<div>Loading...</div>}>
       <SidebarProvider defaultOpen={!isMobile}>
         <div className="flex min-h-screen bg-background">
-          <Sidebar collapsible="icon" className="border-r shadow-lg">
+          <Sidebar 
+            collapsible="icon" 
+            variant="inset"
+            className="border-r shadow-lg"
+          >
             <SidebarHeader className="border-b bg-card px-8 py-6">
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -366,6 +370,7 @@ export default function ApiExplorer() {
               </SidebarMenu>
             </SidebarContent>
           </Sidebar>
+
           <SidebarInset>
             <main className="flex-1 overflow-auto">
               <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b shadow-sm">
