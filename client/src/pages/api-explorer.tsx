@@ -129,9 +129,9 @@ const isEndpointActive = (endpoint: Endpoint, selectedEndpoint: Endpoint): boole
 export default function ApiExplorer() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint>(endpointGroups.read[0]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    read: true,
-    write: true,
-    modify: true
+    read: false,
+    write: false,
+    modify: false
   });
   const [requestBody, setRequestBody] = useState<string>(
     selectedEndpoint?.requestBody ? JSON.stringify(selectedEndpoint.requestBody, null, 2) : ""
