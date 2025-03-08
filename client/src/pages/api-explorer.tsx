@@ -45,6 +45,9 @@ import {
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Add some basic logging
+console.log('ApiExplorer component is rendering');
+
 // Register the JSON language for syntax highlighting
 SyntaxHighlighter.registerLanguage('json', json);
 
@@ -144,9 +147,11 @@ const getOperationIcon = (groupKey: string) => {
 };
 
 export default function ApiExplorer() {
+  console.log('Starting ApiExplorer render');
+
   const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint>(endpointGroups.read[0]);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    read: false,
+    read: true,
     write: false,
     modify: false
   });
@@ -158,6 +163,10 @@ export default function ApiExplorer() {
   const [isOperationInProgress, setIsOperationInProgress] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const isMobile = useIsMobile();
+
+  React.useEffect(() => {
+    console.log('ApiExplorer mounted');
+  }, []);
 
   const handleEndpointChange = (endpoint: Endpoint) => {
     if (!endpoint) return;
@@ -185,22 +194,14 @@ export default function ApiExplorer() {
         `/api/records/${params.id}`
       );
 
-      if (response.status === 204) {
-        setRequestState({
-          loading: false,
-          response: {
-            status: 204,
-            data: { success: true, message: "Record successfully deleted" }
-          }
-        });
-        await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
-      } else {
-        const errorData = await response.json();
-        setRequestState({
-          loading: false,
-          error: errorData.message || "Failed to delete record"
-        });
-      }
+      setRequestState({
+        loading: false,
+        response: {
+          status: response.status,
+          data: { success: true, message: "Record successfully deleted" }
+        }
+      });
+      await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
     } catch (error) {
       setRequestState({
         loading: false,
@@ -238,23 +239,6 @@ export default function ApiExplorer() {
         path,
         selectedEndpoint.method !== "GET" && requestBody ? JSON.parse(requestBody) : undefined
       );
-
-      if (selectedEndpoint.method === "PATCH") {
-        const responseData = await response.json();
-        setRequestState({
-          loading: false,
-          response: {
-            status: response.status,
-            data: {
-              success: true,
-              message: "Record updated successfully",
-              data: responseData.data
-            }
-          }
-        });
-        await queryClient.invalidateQueries({ queryKey: ["/api/records"] });
-        return;
-      }
 
       const responseData = await response.json();
       setRequestState({
@@ -300,7 +284,13 @@ export default function ApiExplorer() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex min-h-screen bg-background">
+        <div className="flex min-h-screen bg-background" 
+          style={{
+            "--sidebar-width": "28rem",
+            "--sidebar-width-mobile": "30rem",
+            "--sidebar-width-icon": "4rem",
+          } as React.CSSProperties}
+        >
           <Sidebar 
             collapsible="icon" 
             variant="inset"
@@ -370,7 +360,6 @@ export default function ApiExplorer() {
               </SidebarMenu>
             </SidebarContent>
           </Sidebar>
-
           <SidebarInset>
             <main className="flex-1 overflow-auto">
               <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b shadow-sm">
