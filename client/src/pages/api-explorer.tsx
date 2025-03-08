@@ -107,12 +107,6 @@ const endpointGroups = {
   ]
 };
 
-interface RequestState {
-  loading: boolean;
-  response?: any;
-  error?: string;
-}
-
 const getMethodColor = (method: string) => {
   switch (method) {
     case 'GET':
@@ -145,6 +139,12 @@ const getOperationIcon = (groupKey: string) => {
       return null;
   }
 };
+
+interface RequestState {
+  loading: boolean;
+  response?: any;
+  error?: string;
+}
 
 export default function ApiExplorer() {
   console.log('Starting ApiExplorer render');
@@ -284,33 +284,34 @@ export default function ApiExplorer() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <SidebarProvider defaultOpen={!isMobile}>
-        <div className="flex min-h-screen bg-background" 
+        <div 
+          className="group/sidebar-wrapper flex min-h-svh w-full text-sidebar-foreground has-[[data-variant=inset]]:bg-sidebar"
           style={{
             "--sidebar-width": "28rem",
             "--sidebar-width-mobile": "30rem",
-            "--sidebar-width-icon": "4rem",
+            "--sidebar-width-icon": "3rem",
           } as React.CSSProperties}
         >
-          <Sidebar 
-            collapsible="icon" 
+          <Sidebar
+            collapsible="icon"
             variant="inset"
-            className="border-r shadow-lg"
+            className="border-r border-border shadow-lg transition-all duration-300 ease-in-out"
           >
-            <SidebarHeader className="border-b bg-card px-8 py-6">
-              <div className="space-y-6">
+            <SidebarHeader className="border-b bg-card px-6 py-4">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Link href="/">
                     <Button
                       variant="outline"
                       className="justify-start bg-background hover:bg-accent shadow-sm transition-all duration-200"
                     >
-                      <ArrowLeft className="w-4 h-4 mr-3" />
+                      <ArrowLeft className="w-4 h-4 mr-2" />
                       Back
                     </Button>
                   </Link>
                   <SidebarTrigger />
                 </div>
-                <h2 className="text-sm font-semibold text-muted-foreground tracking-tight mb-4">
+                <h2 className="text-sm font-semibold text-muted-foreground tracking-tight">
                   API ENDPOINTS
                 </h2>
               </div>
@@ -360,10 +361,10 @@ export default function ApiExplorer() {
               </SidebarMenu>
             </SidebarContent>
           </Sidebar>
-          <SidebarInset>
-            <main className="flex-1 overflow-auto">
-              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b shadow-sm">
-                <div className="container max-w-4xl mx-auto px-8 py-10">
+          <SidebarInset className="relative flex-1 overflow-hidden transition-[margin] duration-300 ease-in-out">
+            <main className="flex-1 overflow-auto p-6">
+              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b rounded-lg">
+                <div className="container max-w-5xl mx-auto px-6 py-8">
                   <h1 className="text-3xl font-bold text-foreground mb-3 tracking-tight">API Explorer</h1>
                   <p className="text-lg text-muted-foreground">
                     {selectedEndpoint.description}
@@ -371,8 +372,8 @@ export default function ApiExplorer() {
                 </div>
               </div>
 
-              <div className="container max-w-4xl mx-auto p-8">
-                <div className="space-y-8">
+              <div className="container max-w-5xl mx-auto py-6">
+                <div className="space-y-6">
                   <Card className="shadow-md transition-shadow hover:shadow-lg">
                     <CardHeader className="px-8 pt-8">
                       <CardTitle>Request Details</CardTitle>
